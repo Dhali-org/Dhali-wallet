@@ -36,19 +36,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.getWallet() == null) {
-      return Scaffold(
-        body: getAvailableWallets(),
-      );
+      return getAvailableWallets();
     } else {
-      return Scaffold(
-        body: Center(
-          child: getGeneratedWallet(widget.getWallet()!, hideMnemonic: false),
-        ),
-      );
+      return getGeneratedWallet(widget.getWallet()!,
+          textColor: widget.textColor, hideMnemonic: false);
     }
   }
 
-  Widget getAvailableWallets() {
+  Widget generateXRPL() {
     return Center(
       child: ListView(
         shrinkWrap: true,
@@ -212,10 +207,37 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       ),
     );
   }
+
+  Widget getAvailableWallets() {
+    return ListView(
+      children: <Widget>[
+        ListTile(
+          title: Text('Wallet 1'),
+          onTap: () {
+            // Do something when Wallet 1 is tapped.
+          },
+        ),
+        ListTile(
+          title: Text('Wallet 2'),
+          onTap: () {
+            // Do something when Wallet 2 is tapped.
+          },
+        ),
+        ListTile(
+          title: Text('Wallet 3'),
+          onTap: () {
+            // Do something when Wallet 3 is tapped.
+          },
+        ),
+      ],
+    );
+  }
 }
 
-Widget getGeneratedWallet(XRPLWallet wallet, {bool hideMnemonic = true}) {
-  return ListView(
+Widget getGeneratedWallet(XRPLWallet wallet,
+    {bool hideMnemonic = true, Color textColor = Colors.black}) {
+  return Center(
+      child: ListView(
     shrinkWrap: true,
     children: <Widget>[
       !hideMnemonic
@@ -226,7 +248,7 @@ Widget getGeneratedWallet(XRPLWallet wallet, {bool hideMnemonic = true}) {
                   TextSpan(
                     text:
                         'To regenerate your wallet later, remember your keywords:\n',
-                    style: TextStyle(color: Colors.black, fontSize: 25),
+                    style: TextStyle(color: textColor, fontSize: 25),
                   ),
                 ],
               ),
@@ -237,9 +259,7 @@ Widget getGeneratedWallet(XRPLWallet wallet, {bool hideMnemonic = true}) {
               wallet.mnemonic!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold),
+                  color: textColor, fontSize: 25, fontWeight: FontWeight.bold),
             )
           : SizedBox.shrink(),
       //const Center(
@@ -278,5 +298,5 @@ Widget getGeneratedWallet(XRPLWallet wallet, {bool hideMnemonic = true}) {
             )),
       )
     ],
-  );
+  ));
 }
