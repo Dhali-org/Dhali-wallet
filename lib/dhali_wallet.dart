@@ -11,9 +11,11 @@ class WalletHomeScreen extends StatefulWidget {
       required this.getWallet,
       required this.setWallet,
       required this.color,
-      required this.highlightedColor});
+      required this.highlightedColor,
+      this.textColor = Colors.black});
 
   final Color color;
+  final Color textColor;
   final Color highlightedColor;
   final String title;
   final XRPLWallet? Function() getWallet;
@@ -110,7 +112,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                         children: [
                           TextSpan(
                             text: '\n\nor\n\n',
-                            style: TextStyle(color: Colors.black, fontSize: 25),
+                            style: TextStyle(
+                                color: widget.textColor, fontSize: 25),
                           ),
                         ],
                       ),
