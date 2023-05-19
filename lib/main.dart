@@ -7,8 +7,7 @@ Future<void> main() async {
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: Scaffold(
-          body: WalletHomeScreen(
+      home: WalletHomeScreen(
         color: Color(0xFF0000FF),
         textColor: Colors.white,
         highlightedColor: Color(0xFF0000FF),
@@ -19,7 +18,7 @@ Future<void> main() async {
         setWallet: (XRPLWallet wallet) {
           _wallet = wallet;
         },
-      )),
+      ),
     ),
   );
 }
