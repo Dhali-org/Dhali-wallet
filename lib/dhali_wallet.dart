@@ -21,13 +21,9 @@ class WalletHomeScreen extends StatefulWidget {
       required this.title,
       required this.getWallet,
       required this.setWallet,
-      required this.color,
-      required this.highlightedColor,
-      this.textColor = Colors.black});
+      this.isImported = true});
 
-  final Color color;
-  final Color textColor;
-  final Color highlightedColor;
+  final bool isImported;
   final String title;
   final XRPLWallet? Function() getWallet;
   final Function(XRPLWallet) setWallet;
@@ -301,13 +297,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
           Image image;
           if (wallet == Wallet.XummWallet) {
-            image = Image.asset('assets/images/xumm.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/xumm.png'
+                : 'assets/images/xumm.png');
           } else if (wallet == Wallet.RawXRPWallet) {
-            image = Image.asset('assets/images/xrp.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/xrp.png'
+                : 'assets/images/xrp.png');
           } else if (wallet == Wallet.Fynbos) {
-            image = Image.asset('assets/images/fynbos.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/fynbos.png'
+                : 'assets/images/fynbos.png');
           } else {
-            image = Image.asset('assets/images/metamask.jpg');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/metamask.jpg'
+                : 'assets/images/metamask.jpg');
           }
 
           return GestureDetector(
