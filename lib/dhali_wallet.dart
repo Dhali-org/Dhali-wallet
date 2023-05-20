@@ -21,13 +21,19 @@ class WalletHomeScreen extends StatefulWidget {
       required this.title,
       required this.getWallet,
       required this.setWallet,
-      required this.color,
-      required this.highlightedColor,
-      this.textColor = Colors.black});
+      this.bodyColor,
+      this.bodyTextColor,
+      this.appBarTextColor,
+      this.appBarColor,
+      this.buttonsColor,
+      this.isImported = true});
 
-  final Color color;
-  final Color textColor;
-  final Color highlightedColor;
+  final Color? bodyColor;
+  final Color? bodyTextColor;
+  final Color? buttonsColor;
+  final Color? appBarTextColor;
+  final Color? appBarColor;
+  final bool isImported;
   final String title;
   final XRPLWallet? Function() getWallet;
   final Function(XRPLWallet) setWallet;
@@ -59,6 +65,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         initialIndex: _tabIndex,
         child: Scaffold(
             appBar: AppBar(
+              backgroundColor: widget.appBarColor,
+              foregroundColor: widget.appBarTextColor,
               bottom: TabBar(
                 tabs: [
                   Tab(
@@ -102,7 +110,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                             children: <Widget>[
                               Positioned.fill(
                                 child: Container(
-                                  color: widget.color,
+                                  color: widget.buttonsColor,
                                 ),
                               ),
                               TextButton(
@@ -145,7 +153,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                           TextSpan(
                             text: '\n\nor\n\n',
                             style: TextStyle(
-                                color: widget.textColor, fontSize: 25),
+                                color: widget.bodyTextColor, fontSize: 25),
                           ),
                         ],
                       ),
@@ -197,7 +205,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                             children: <Widget>[
                               Positioned.fill(
                                 child: Container(
-                                  color: widget.color,
+                                  color: widget.buttonsColor,
                                 ),
                               ),
                               TextButton(
@@ -254,8 +262,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         if (widget.getWallet() == null) {
           screen = CreateRawXRPLWallet();
         } else {
-          screen =
-              RawXRPWallet(widget.getWallet()!, textColor: widget.textColor);
+          screen = RawXRPWallet(widget.getWallet()!,
+              textColor: widget.bodyTextColor);
         }
         break;
       case Wallet.XummWallet:
@@ -301,13 +309,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
           Image image;
           if (wallet == Wallet.XummWallet) {
-            image = Image.asset('assets/images/xumm.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/xumm.png'
+                : 'assets/images/xumm.png');
           } else if (wallet == Wallet.RawXRPWallet) {
-            image = Image.asset('assets/images/xrp.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/xrp.png'
+                : 'assets/images/xrp.png');
           } else if (wallet == Wallet.Fynbos) {
-            image = Image.asset('assets/images/fynbos.png');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/fynbos.png'
+                : 'assets/images/fynbos.png');
           } else {
-            image = Image.asset('assets/images/metamask.jpg');
+            image = Image.asset(widget.isImported
+                ? 'packages/dhali_wallet/assets/images/metamask.jpg'
+                : 'assets/images/metamask.jpg');
           }
 
           return GestureDetector(
@@ -340,7 +356,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   }
 
   Widget RawXRPWallet(XRPLWallet wallet,
-      {bool hideMnemonic = true, Color textColor = Colors.black}) {
+      {bool hideMnemonic = true, Color? textColor = Colors.black}) {
     const double fontSize = 20;
     return Center(
         child: ListView(
@@ -369,7 +385,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                         ]);
                   }
                   return SelectableText('Balance: $balance XRP',
-                      style: const TextStyle(fontSize: 25));
+                      style: TextStyle(fontSize: 25, color: textColor));
                 }),
           ),
         ),
@@ -378,14 +394,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               padding: const EdgeInsets.symmetric(vertical: 25.0),
               child: SelectableText(
                 'Classic address: ${wallet.address}',
-                style: const TextStyle(fontSize: fontSize),
+                style: TextStyle(fontSize: fontSize, color: textColor),
               )),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SelectableText('Memorable words: ',
-                style: const TextStyle(fontSize: fontSize)),
+            SelectableText('Memorable words: ',
+                style: TextStyle(fontSize: fontSize, color: textColor)),
             SizedBox(width: 8),
             GestureDetector(
               onTap: () {

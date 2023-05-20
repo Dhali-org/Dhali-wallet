@@ -8,9 +8,9 @@ Future<void> main() async {
     MaterialApp(
       theme: ThemeData.dark(),
       home: WalletHomeScreen(
-        color: Color(0xFF0000FF),
-        textColor: Colors.white,
-        highlightedColor: Color(0xFF0000FF),
+        isImported: false,
+        bodyTextColor: Color.fromARGB(255, 255, 255, 255),
+        buttonsColor: Color.fromARGB(255, 255, 0, 212),
         title: "wallet",
         getWallet: () {
           return _wallet;
