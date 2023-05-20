@@ -9,8 +9,8 @@ Future<void> main() async {
       theme: ThemeData.dark(),
       home: WalletHomeScreen(
         isImported: false,
-        textColor: Colors.white,
-        highlightedColor: Color(0xFF0000FF),
+        bodyTextColor: Color.fromARGB(255, 255, 255, 255),
+        buttonsColor: Color.fromARGB(255, 255, 0, 212),
         title: "wallet",
         getWallet: () {
           return _wallet;

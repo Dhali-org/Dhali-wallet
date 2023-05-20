@@ -27,9 +27,7 @@ void main() {
           platform: TargetPlatform.iOS,
         ),
         home: WalletHomeScreen(
-          color: Color(0xFF0000FF),
-          textColor: Colors.white,
-          highlightedColor: Color(0xFF0000FF),
+          bodyTextColor: Color(0xFF0000FF),
           title: "wallet",
           getWallet: () {
             return mockWallet;
