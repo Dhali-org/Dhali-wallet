@@ -275,7 +275,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       case Wallet.XummWallet:
         screen = Center(
           child: Text(
-            "Coming soon!",
+            "XUMM wallet coming soon!",
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
         );
@@ -283,7 +283,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       case Wallet.Fynbos:
         screen = Center(
           child: Text(
-            "Coming soon!",
+            "Fynbos wallet coming soon!",
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
         );
@@ -291,7 +291,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       case Wallet.MetaMask:
         screen = Center(
           child: Text(
-            "Coming soon!",
+            "MetaMask wallet coming soon!",
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
         );
@@ -315,21 +315,29 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
           Image image;
           if (wallet == Wallet.XummWallet) {
-            image = Image.asset(widget.isImported
-                ? 'packages/dhali_wallet/assets/images/xumm.png'
-                : 'assets/images/xumm.png');
+            image = Image.asset(
+                key: const Key("xumm_wallet_tile"),
+                widget.isImported
+                    ? 'packages/dhali_wallet/assets/images/xumm.png'
+                    : 'assets/images/xumm.png');
           } else if (wallet == Wallet.RawXRPWallet) {
-            image = Image.asset(widget.isImported
-                ? 'packages/dhali_wallet/assets/images/xrp.png'
-                : 'assets/images/xrp.png');
+            image = Image.asset(
+                key: const Key("raw_xrp_wallet_tile"),
+                widget.isImported
+                    ? 'packages/dhali_wallet/assets/images/xrp.png'
+                    : 'assets/images/xrp.png');
           } else if (wallet == Wallet.Fynbos) {
-            image = Image.asset(widget.isImported
-                ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                : 'assets/images/fynbos.png');
+            image = Image.asset(
+                key: const Key("fynbos_wallet_tile"),
+                widget.isImported
+                    ? 'packages/dhali_wallet/assets/images/fynbos.png'
+                    : 'assets/images/fynbos.png');
           } else {
-            image = Image.asset(widget.isImported
-                ? 'packages/dhali_wallet/assets/images/metamask.jpg'
-                : 'assets/images/metamask.jpg');
+            image = Image.asset(
+                key: const Key("metamask_wallet_tile"),
+                widget.isImported
+                    ? 'packages/dhali_wallet/assets/images/metamask.jpg'
+                    : 'assets/images/metamask.jpg');
           }
 
           return GestureDetector(
@@ -365,67 +373,70 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       {bool hideMnemonic = true, Color? textColor = Colors.black}) {
     const double fontSize = 20;
     return Center(
+        key: const Key("raw_xrp_wallet"),
         child: ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        //const Center(
-        //  child: const Padding(
-        //padding: EdgeInsets.symmetric(horizontal: 200.0,
-        //                        vertical: 100.0),
-        //    child: BalanceChart(),
-        //  )
-        //),
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 25.0),
-            child: ValueListenableBuilder<String?>(
-                valueListenable: wallet.balance,
-                builder: (BuildContext context, String? balance, Widget? _) {
-                  if (balance == null) {
-                    return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Loading balance: ",
-                              style: TextStyle(fontSize: fontSize)),
-                          CircularProgressIndicator()
-                        ]);
-                  }
-                  return SelectableText('Balance: $balance XRP',
-                      style: TextStyle(fontSize: 25, color: textColor));
-                }),
-          ),
-        ),
-        Center(
-          child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 25.0),
-              child: SelectableText(
-                'Classic address: ${wallet.address}',
-                style: TextStyle(fontSize: fontSize, color: textColor),
-              )),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SelectableText('Memorable words: ',
-                style: TextStyle(fontSize: fontSize, color: textColor)),
-            SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                final dataUri =
-                    'data:text/plain;charset=utf-8,${wallet.mnemonic!}';
-                html.document.createElement('a') as html.AnchorElement
-                  ..href = dataUri
-                  ..download = 'dhali_xrp_wallet_secret_words.xrp'
-                  ..dispatchEvent(html.Event.eventType('MouseEvent', 'click'));
-              },
-              child: const Icon(
-                Icons.download,
-                color: Colors.grey,
+          shrinkWrap: true,
+          children: <Widget>[
+            //const Center(
+            //  child: const Padding(
+            //padding: EdgeInsets.symmetric(horizontal: 200.0,
+            //                        vertical: 100.0),
+            //    child: BalanceChart(),
+            //  )
+            //),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 25.0),
+                child: ValueListenableBuilder<String?>(
+                    valueListenable: wallet.balance,
+                    builder:
+                        (BuildContext context, String? balance, Widget? _) {
+                      if (balance == null) {
+                        return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Loading balance: ",
+                                  style: TextStyle(fontSize: fontSize)),
+                              CircularProgressIndicator()
+                            ]);
+                      }
+                      return SelectableText('Balance: $balance XRP',
+                          style: TextStyle(fontSize: 25, color: textColor));
+                    }),
               ),
-            )
+            ),
+            Center(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 25.0),
+                  child: SelectableText(
+                    'Classic address: ${wallet.address}',
+                    style: TextStyle(fontSize: fontSize, color: textColor),
+                  )),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SelectableText('Memorable words: ',
+                    style: TextStyle(fontSize: fontSize, color: textColor)),
+                SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    final dataUri =
+                        'data:text/plain;charset=utf-8,${wallet.mnemonic!}';
+                    html.document.createElement('a') as html.AnchorElement
+                      ..href = dataUri
+                      ..download = 'dhali_xrp_wallet_secret_words.txt'
+                      ..dispatchEvent(
+                          html.Event.eventType('MouseEvent', 'click'));
+                  },
+                  child: const Icon(
+                    Icons.download,
+                    color: Colors.grey,
+                  ),
+                )
+              ],
+            ),
           ],
-        ),
-      ],
-    ));
+        ));
   }
 }
