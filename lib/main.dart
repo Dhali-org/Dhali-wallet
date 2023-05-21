@@ -1,9 +1,10 @@
 import 'package:dhali_wallet/dhali_wallet.dart';
+import 'package:dhali_wallet/dhali_wallet_widget.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  XRPLWallet? _wallet;
+  DhaliWallet? _wallet;
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
@@ -15,7 +16,7 @@ Future<void> main() async {
         getWallet: () {
           return _wallet;
         },
-        setWallet: (XRPLWallet wallet) {
+        setWallet: (DhaliWallet wallet) {
           _wallet = wallet;
         },
       ),

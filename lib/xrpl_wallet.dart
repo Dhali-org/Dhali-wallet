@@ -1,3 +1,4 @@
+import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_types.dart';
 import 'package:flutter/material.dart';
 import 'dart:html';
@@ -42,7 +43,7 @@ class InvalidPaymentChannelException implements Exception {
   InvalidPaymentChannelException(this.message);
 }
 
-class XRPLWallet {
+class XRPLWallet extends DhaliWallet {
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
