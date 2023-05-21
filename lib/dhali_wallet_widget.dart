@@ -3,6 +3,7 @@ library dhali_wallet;
 import 'dart:convert';
 import 'dart:html' as html;
 
+import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
@@ -35,8 +36,8 @@ class WalletHomeScreen extends StatefulWidget {
   final Color? appBarColor;
   final bool isImported;
   final String title;
-  final XRPLWallet? Function() getWallet;
-  final Function(XRPLWallet) setWallet;
+  final DhaliWallet? Function() getWallet;
+  final Function(DhaliWallet) setWallet;
 
   @override
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
@@ -54,7 +55,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   @override
   void initState() {
-    _wallet ?? Wallet.UnselectedWallet;
+    _wallet = Wallet.UnselectedWallet;
+    if (widget.getWallet() is XRPLWallet) {
+      _wallet = Wallet.RawXRPWallet;
+    }
     super.initState();
   }
 
@@ -125,8 +129,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                     var wallet = XRPLWallet(_mnemonicState!,
                                         testMode: true);
                                     widget.setWallet(wallet);
-                                    _publicKey =
-                                        widget.getWallet()!.publicKey();
+                                    _publicKey = wallet.publicKey();
                                   });
                                 },
                                 child: const Padding(
@@ -221,8 +224,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                       var wallet = XRPLWallet(_mnemonicState!,
                                           testMode: true);
                                       widget.setWallet(wallet);
-                                      _publicKey =
-                                          widget.getWallet()!.publicKey();
+                                      _publicKey = wallet.publicKey();
                                     }
                                   });
                                 },
@@ -261,9 +263,13 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       case Wallet.RawXRPWallet:
         if (widget.getWallet() == null) {
           screen = CreateRawXRPLWallet();
-        } else {
-          screen = RawXRPWallet(widget.getWallet()!,
+        } else if (widget.getWallet() is XRPLWallet) {
+          screen = RawXRPWallet(widget.getWallet()! as XRPLWallet,
               textColor: widget.bodyTextColor);
+        } else {
+          // Should never reach this
+          throw Exception(
+              "Your wallet is not of type 'XRPLWallet' but the wallet widget expected it to be");
         }
         break;
       case Wallet.XummWallet:
@@ -406,7 +412,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
             GestureDetector(
               onTap: () {
                 final dataUri =
-                    'data:text/plain;charset=utf-8,${widget.getWallet()!.mnemonic!}';
+                    'data:text/plain;charset=utf-8,${wallet.mnemonic!}';
                 html.document.createElement('a') as html.AnchorElement
                   ..href = dataUri
                   ..download = 'dhali_xrp_wallet_secret_words.xrp'
