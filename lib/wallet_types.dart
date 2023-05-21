@@ -7,3 +7,10 @@ class NFTOffer {
   NFTOffer(int this.amount, String this.owner, String this.destination,
       String this.offerIndex);
 }
+
+class PaymentChannelDescriptor {
+  String channelId;
+  int amount;
+
+  PaymentChannelDescriptor(this.channelId, this.amount);
+}
