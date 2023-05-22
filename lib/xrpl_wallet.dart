@@ -1,5 +1,5 @@
 import 'package:dhali_wallet/dhali_wallet.dart';
-import 'package:dhali_wallet/xrpl_types.dart';
+import 'package:dhali_wallet/wallet_types.dart';
 import 'package:flutter/material.dart';
 import 'dart:html';
 import 'package:node_interop/util.dart';
@@ -20,13 +20,6 @@ import 'package:xrpl/xrpl.dart';
 // 4. Get historical balances? [LOW PRIORITY]
 // 5. New wallet (hot/cold?) (generate hash/seed/recovery words, create
 //   corresponding new XRP account.  PoC => hot wallet only)
-
-class PaymentChannelDescriptor {
-  String channelId;
-  int amount;
-
-  PaymentChannelDescriptor(this.channelId, this.amount);
-}
 
 class ImplementationErrorException implements Exception {
   String message;
@@ -96,10 +89,12 @@ class XRPLWallet extends DhaliWallet {
     return _wallet!.publicKey;
   }
 
+  @override
   String get address {
     return _wallet!.address;
   }
 
+  @override
   String sendDrops(String amount, String channelId) {
     return authorizeChannel(_wallet!, channelId, amount);
   }
@@ -118,6 +113,7 @@ class XRPLWallet extends DhaliWallet {
     });
   }
 
+  @override
   Future<dynamic> getAvailableNFTs() async {
     Client client = Client(_netUrl);
     try {
@@ -139,6 +135,7 @@ class XRPLWallet extends DhaliWallet {
         "This code should never be reached, and indicates an implementation error."));
   }
 
+  @override
   Future<bool> acceptOffer(String offerIndex) async {
     Client client = Client(_netUrl);
 
@@ -184,6 +181,7 @@ class XRPLWallet extends DhaliWallet {
         "This code should never be reached, and indicates an implementation error."));
   }
 
+  @override
   Future<List<NFTOffer>> getNFTOffers(
     String nfTokenId,
   ) async {
@@ -235,6 +233,7 @@ class XRPLWallet extends DhaliWallet {
         "This code should never be reached, and indicates an implementation error."));
   }
 
+  @override
   Future<List<PaymentChannelDescriptor>> getOpenPaymentChannels(
       {String? destination_address}) async {
     Client client = Client(_netUrl);
@@ -281,6 +280,7 @@ class XRPLWallet extends DhaliWallet {
         "This code should never be reached, and indicates an implementation error."));
   }
 
+  @override
   Future<PaymentChannelDescriptor> openPaymentChannel(
       String destinationAddress, String amount) async {
     Client client = Client(_netUrl);

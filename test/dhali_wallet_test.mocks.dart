@@ -3,13 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i5;
 
-import 'package:dhali_wallet/xrpl_types.dart' as _i6;
-import 'package:dhali_wallet/xrpl_wallet.dart' as _i3;
+import 'package:dhali_wallet/wallet_types.dart' as _i3;
+import 'package:dhali_wallet/xrpl_wallet.dart' as _i4;
 import 'package:flutter/material.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:xrpl/xrpl.dart' as _i5;
+import 'package:xrpl/xrpl.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -47,7 +47,7 @@ class _FakePaymentChannelDescriptor_1 extends _i1.SmartFake
 /// A class which mocks [XRPLWallet].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
+class MockXRPLWallet extends _i1.Mock implements _i4.XRPLWallet {
   MockXRPLWallet() {
     _i1.throwOnMissingStub(this);
   }
@@ -105,9 +105,9 @@ class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
         returnValue: '',
       ) as String);
   @override
-  _i4.Future<dynamic> submitRequest(
-    _i5.BaseRequest? request,
-    _i5.Client? client,
+  _i5.Future<dynamic> submitRequest(
+    _i6.BaseRequest? request,
+    _i6.Client? client,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -117,35 +117,35 @@ class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
             client,
           ],
         ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i4.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
+  _i5.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
         Invocation.method(
           #getAvailableNFTs,
           [],
         ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i4.Future<bool> acceptOffer(String? offerIndex) => (super.noSuchMethod(
+  _i5.Future<bool> acceptOffer(String? offerIndex) => (super.noSuchMethod(
         Invocation.method(
           #acceptOffer,
           [offerIndex],
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<List<_i6.NFTOffer>> getNFTOffers(String? nfTokenId) =>
+  _i5.Future<List<_i3.NFTOffer>> getNFTOffers(String? nfTokenId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getNFTOffers,
           [nfTokenId],
         ),
-        returnValue: _i4.Future<List<_i6.NFTOffer>>.value(<_i6.NFTOffer>[]),
-      ) as _i4.Future<List<_i6.NFTOffer>>);
+        returnValue: _i5.Future<List<_i3.NFTOffer>>.value(<_i3.NFTOffer>[]),
+      ) as _i5.Future<List<_i3.NFTOffer>>);
   @override
-  _i4.Future<List<_i3.PaymentChannelDescriptor>> getOpenPaymentChannels(
+  _i5.Future<List<_i3.PaymentChannelDescriptor>> getOpenPaymentChannels(
           {String? destination_address}) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -153,11 +153,11 @@ class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
           [],
           {#destination_address: destination_address},
         ),
-        returnValue: _i4.Future<List<_i3.PaymentChannelDescriptor>>.value(
+        returnValue: _i5.Future<List<_i3.PaymentChannelDescriptor>>.value(
             <_i3.PaymentChannelDescriptor>[]),
-      ) as _i4.Future<List<_i3.PaymentChannelDescriptor>>);
+      ) as _i5.Future<List<_i3.PaymentChannelDescriptor>>);
   @override
-  _i4.Future<_i3.PaymentChannelDescriptor> openPaymentChannel(
+  _i5.Future<_i3.PaymentChannelDescriptor> openPaymentChannel(
     String? destinationAddress,
     String? amount,
   ) =>
@@ -169,7 +169,7 @@ class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
             amount,
           ],
         ),
-        returnValue: _i4.Future<_i3.PaymentChannelDescriptor>.value(
+        returnValue: _i5.Future<_i3.PaymentChannelDescriptor>.value(
             _FakePaymentChannelDescriptor_1(
           this,
           Invocation.method(
@@ -180,5 +180,5 @@ class MockXRPLWallet extends _i1.Mock implements _i3.XRPLWallet {
             ],
           ),
         )),
-      ) as _i4.Future<_i3.PaymentChannelDescriptor>);
+      ) as _i5.Future<_i3.PaymentChannelDescriptor>);
 }
