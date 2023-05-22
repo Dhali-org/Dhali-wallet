@@ -61,6 +61,11 @@ class MockXRPLWallet extends _i1.Mock implements _i4.XRPLWallet {
         returnValueForMissingStub: null,
       );
   @override
+  String get address => (super.noSuchMethod(
+        Invocation.getter(#address),
+        returnValue: '',
+      ) as String);
+  @override
   _i2.ValueNotifier<String?> get balance => (super.noSuchMethod(
         Invocation.getter(#balance),
         returnValue: _FakeValueNotifier_0<String?>(
@@ -69,19 +74,6 @@ class MockXRPLWallet extends _i1.Mock implements _i4.XRPLWallet {
         ),
       ) as _i2.ValueNotifier<String?>);
   @override
-  set balance(_i2.ValueNotifier<String?>? _balance) => super.noSuchMethod(
-        Invocation.setter(
-          #balance,
-          _balance,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  String get address => (super.noSuchMethod(
-        Invocation.getter(#address),
-        returnValue: '',
-      ) as String);
-  @override
   String publicKey() => (super.noSuchMethod(
         Invocation.method(
           #publicKey,
@@ -89,6 +81,24 @@ class MockXRPLWallet extends _i1.Mock implements _i4.XRPLWallet {
         ),
         returnValue: '',
       ) as String);
+  @override
+  Map<String, String> preparePayment({
+    required String? destinationAddress,
+    required String? authAmount,
+    required String? channelId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #preparePayment,
+          [],
+          {
+            #destinationAddress: destinationAddress,
+            #authAmount: authAmount,
+            #channelId: channelId,
+          },
+        ),
+        returnValue: <String, String>{},
+      ) as Map<String, String>);
   @override
   String sendDrops(
     String? amount,
