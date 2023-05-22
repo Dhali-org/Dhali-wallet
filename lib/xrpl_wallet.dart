@@ -48,7 +48,7 @@ class XRPLWallet extends DhaliWallet {
   Wallet? _wallet;
   String? mnemonic;
 
-  ValueNotifier<String?> balance = ValueNotifier(null);
+  ValueNotifier<String?> _balance = ValueNotifier(null);
 
   XRPLWallet(String seed, {bool testMode = false}) {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
@@ -73,7 +73,7 @@ class XRPLWallet extends DhaliWallet {
         promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
           String address = _wallet!.address;
           promiseToFuture(client.getXrpBalance(address)).then((balanceString) {
-            balance.value = balanceString.toString();
+            _balance.value = balanceString.toString();
           }).whenComplete(() {
             client.disconnect();
           });
@@ -95,6 +95,24 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
+  ValueNotifier<String?> get balance {
+    return _balance;
+  }
+
+  @override
+  Map<String, String> preparePayment(
+      {required String destinationAddress,
+      required String authAmount,
+      required String channelId}) {
+    return {
+      "account": address,
+      "destination_account": destinationAddress,
+      "authorized_to_claim": authAmount,
+      "signature": sendDrops(authAmount, channelId),
+      "channel_id": channelId
+    };
+  }
+
   String sendDrops(String amount, String channelId) {
     return authorizeChannel(_wallet!, channelId, amount);
   }
