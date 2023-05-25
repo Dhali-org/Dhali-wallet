@@ -39,7 +39,7 @@ class _MainAppState extends State<MainApp> {
           getWallet: () {
             return _wallet;
           },
-          setWallet: (DhaliWallet wallet) {
+          setWallet: (DhaliWallet? wallet) {
             _wallet = wallet;
           },
           onActivation: _activateWallet,
