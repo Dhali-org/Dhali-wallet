@@ -27,6 +27,7 @@ class WalletHomeScreen extends StatefulWidget {
       this.appBarTextColor,
       this.appBarColor,
       this.buttonsColor,
+      this.onActivation,
       this.isImported = true});
 
   final Color? bodyColor;
@@ -38,6 +39,7 @@ class WalletHomeScreen extends StatefulWidget {
   final String title;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet) setWallet;
+  final void Function()? onActivation;
 
   @override
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
@@ -130,6 +132,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                         testMode: true);
                                     widget.setWallet(wallet);
                                     _publicKey = wallet.publicKey();
+                                    if (widget.onActivation != null) {
+                                      widget.onActivation!();
+                                    }
                                   });
                                 },
                                 child: const Padding(
@@ -225,6 +230,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                           testMode: true);
                                       widget.setWallet(wallet);
                                       _publicKey = wallet.publicKey();
+                                      if (widget.onActivation != null) {
+                                        widget.onActivation!();
+                                      }
                                     }
                                   });
                                 },
