@@ -73,7 +73,7 @@ class XRPLWallet extends DhaliWallet {
         promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
           String address = _wallet!.address;
           promiseToFuture(client.getXrpBalance(address)).then((balanceString) {
-            _balance.value = balanceString.toString();
+            _balance.value = (double.parse(balanceString) * 1000000).toString();
           }).whenComplete(() {
             client.disconnect();
           });

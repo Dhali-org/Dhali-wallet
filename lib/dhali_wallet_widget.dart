@@ -408,6 +408,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                               CircularProgressIndicator()
                             ]);
                       }
+                      balance = (double.parse(balance) / 1000000).toString();
                       return SelectableText('Balance: $balance XRP',
                           style: TextStyle(fontSize: 25, color: textColor));
                     }),
