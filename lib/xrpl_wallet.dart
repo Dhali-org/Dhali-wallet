@@ -58,7 +58,7 @@ class XRPLWallet extends DhaliWallet {
         promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
           String address = _wallet!.address;
           promiseToFuture(client.getXrpBalance(address)).then((balanceString) {
-            _balance.value = (double.parse(balanceString) * 1000000).toString();
+            updateBalance();
           }).whenComplete(() {
             client.disconnect();
           });
@@ -68,6 +68,18 @@ class XRPLWallet extends DhaliWallet {
       logger.e('Exception caught: ${e.toString()}');
       logger.e(stacktrace);
     }
+  }
+
+  Future<void> updateBalance() async {
+    getOpenPaymentChannels(
+            destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
+        .then((paymentChannels) {
+      if (paymentChannels.isNotEmpty) {
+        _balance.value = paymentChannels[0].amount.toString();
+      } else {
+        _balance.value = "0";
+      }
+    });
   }
 
   String publicKey() {
