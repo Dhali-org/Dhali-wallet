@@ -21,21 +21,6 @@ import 'package:xrpl/xrpl.dart';
 // 5. New wallet (hot/cold?) (generate hash/seed/recovery words, create
 //   corresponding new XRP account.  PoC => hot wallet only)
 
-class ImplementationErrorException implements Exception {
-  String message;
-  ImplementationErrorException(this.message);
-}
-
-class UnexpectedResponseException implements Exception {
-  String message;
-  UnexpectedResponseException(this.message);
-}
-
-class InvalidPaymentChannelException implements Exception {
-  String message;
-  InvalidPaymentChannelException(this.message);
-}
-
 class XRPLWallet extends DhaliWallet {
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
@@ -73,7 +58,7 @@ class XRPLWallet extends DhaliWallet {
         promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
           String address = _wallet!.address;
           promiseToFuture(client.getXrpBalance(address)).then((balanceString) {
-            _balance.value = balanceString.toString();
+            _balance.value = (double.parse(balanceString) * 1000000).toString();
           }).whenComplete(() {
             client.disconnect();
           });
@@ -100,16 +85,22 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
-  Map<String, String> preparePayment(
+  Future<bool> fundPaymentChannel(
+      PaymentChannelDescriptor descriptor, String amount) async {
+    return false;
+  }
+
+  @override
+  Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required String channelId}) {
+      required PaymentChannelDescriptor channelDescriptor}) async {
     return {
       "account": address,
       "destination_account": destinationAddress,
       "authorized_to_claim": authAmount,
-      "signature": sendDrops(authAmount, channelId),
-      "channel_id": channelId
+      "signature": sendDrops(authAmount, channelDescriptor.channelId),
+      "channel_id": channelDescriptor.channelId
     };
   }
 

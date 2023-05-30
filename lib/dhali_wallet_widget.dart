@@ -5,6 +5,8 @@ import 'dart:html' as html;
 
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
+import 'package:dhali_wallet/xumm_wallet.dart';
+import 'package:dhali_wallet/xumm_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
@@ -38,7 +40,7 @@ class WalletHomeScreen extends StatefulWidget {
   final bool isImported;
   final String title;
   final DhaliWallet? Function() getWallet;
-  final Function(DhaliWallet) setWallet;
+  final Function(DhaliWallet?) setWallet;
   final void Function()? onActivation;
 
   @override
@@ -269,24 +271,19 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
     switch (drawerIndex) {
       case Wallet.RawXRPWallet:
-        if (widget.getWallet() == null) {
+        if (widget.getWallet() is! XRPLWallet) {
           screen = CreateRawXRPLWallet();
-        } else if (widget.getWallet() is XRPLWallet) {
+        } else {
           screen = RawXRPWallet(widget.getWallet()! as XRPLWallet,
               textColor: widget.bodyTextColor);
-        } else {
-          // Should never reach this
-          throw Exception(
-              "Your wallet is not of type 'XRPLWallet' but the wallet widget expected it to be");
         }
         break;
       case Wallet.XummWallet:
-        screen = Center(
-          child: Text(
-            "XUMM wallet coming soon!",
-            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-          ),
+        screen = XummWalletWidget(
+          getWallet: widget.getWallet,
+          setWallet: widget.setWallet,
         );
+
         break;
       case Wallet.Fynbos:
         screen = Center(
@@ -408,6 +405,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                               CircularProgressIndicator()
                             ]);
                       }
+                      balance = (double.parse(balance) / 1000000).toString();
                       return SelectableText('Balance: $balance XRP',
                           style: TextStyle(fontSize: 25, color: textColor));
                     }),
