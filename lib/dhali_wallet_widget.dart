@@ -3,6 +3,7 @@ library dhali_wallet;
 import 'dart:convert';
 import 'dart:html' as html;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
@@ -134,6 +135,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                   setState(() {
                                     _mnemonicState = bip39.generateMnemonic();
                                     var wallet = XRPLWallet(_mnemonicState!,
+                                        getFirestore: () =>
+                                            FirebaseFirestore.instance,
                                         testMode: true);
                                     widget.setWallet(wallet);
                                     _publicKey = wallet.publicKey();
@@ -232,6 +235,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                     if (_mnemonicState != null) {
                                       // TODO: 'testMode' to 'false' for release
                                       var wallet = XRPLWallet(_mnemonicState!,
+                                          getFirestore: () =>
+                                              FirebaseFirestore.instance,
                                           testMode: true);
                                       widget.setWallet(wallet);
                                       _publicKey = wallet.publicKey();
@@ -404,7 +409,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                         return Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Loading balance: ",
+                              Text("Loading... ",
                                   style: TextStyle(fontSize: fontSize)),
                               CircularProgressIndicator()
                             ]);

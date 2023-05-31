@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
 import 'package:flutter/services.dart';
@@ -57,6 +58,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
             onSuccess: (http.Response response) {
               XummWallet wallet = XummWallet(
                   jsonDecode(response.body)["response"]["account"],
+                  getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
               setState(() {
                 widget.setWallet(
@@ -167,7 +169,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                             return Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Loading balance: ",
+                                  Text("Loading... ",
                                       style: TextStyle(fontSize: fontSize)),
                                   CircularProgressIndicator()
                                 ]);
