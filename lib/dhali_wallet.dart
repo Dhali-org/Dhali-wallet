@@ -1,8 +1,35 @@
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:flutter/foundation.dart';
 
+class ImplementationErrorException implements Exception {
+  String message;
+  ImplementationErrorException(this.message);
+}
+
+class UnexpectedResponseException implements Exception {
+  String message;
+  UnexpectedResponseException(this.message);
+}
+
+class InvalidPaymentChannelException implements Exception {
+  String message;
+  InvalidPaymentChannelException(this.message);
+}
+
+class ChannelFundingException implements Exception {
+  String message;
+  ChannelFundingException(this.message);
+}
+
+class ClaimSigningException implements Exception {
+  String message;
+  ClaimSigningException(this.message);
+}
+
 abstract class DhaliWallet {
   String get address;
+
+  // The Dhali balance, measured in drops of XRP
   ValueListenable<String?> get balance;
 
   Future<dynamic> getAvailableNFTs();
@@ -10,12 +37,18 @@ abstract class DhaliWallet {
   Future<List<NFTOffer>> getNFTOffers(
     String nfTokenId,
   );
+
+  Future<bool> fundPaymentChannel(
+      PaymentChannelDescriptor descriptor, String amount);
+
   Future<List<PaymentChannelDescriptor>> getOpenPaymentChannels(
       {String? destination_address});
+
   Future<PaymentChannelDescriptor> openPaymentChannel(
       String destinationAddress, String amount);
-  Map<String, String> preparePayment(
+
+  Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required String channelId});
+      required PaymentChannelDescriptor channelDescriptor});
 }

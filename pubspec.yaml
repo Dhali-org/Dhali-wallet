@@ -11,7 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  xrpl: ^0.0.7
+  xrpl: ^0.0.9
+  http: ^0.13.5
   logger: ^1.1.0
   bip39: ^1.0.6
   url_launcher: ^6.1.10
