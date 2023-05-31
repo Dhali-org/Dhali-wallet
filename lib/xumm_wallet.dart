@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
@@ -10,6 +11,7 @@ import 'package:node_interop/util.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:xrpl/xrpl.dart';
 
@@ -21,6 +23,7 @@ class SignatureClaimPair {
 }
 
 class XummWallet extends DhaliWallet {
+  final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
@@ -35,7 +38,9 @@ class XummWallet extends DhaliWallet {
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
 
-  XummWallet(String address, {bool testMode = false}) : _address = address {
+  XummWallet(String address,
+      {required this.getFirestore, bool testMode = false})
+      : _address = address {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     Client client = Client(_netUrl);
     var logger = Logger();
@@ -58,7 +63,17 @@ class XummWallet extends DhaliWallet {
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty) {
-        _balance.value = paymentChannels[0].amount.toString();
+        var doc_id =
+            Uuid().v5(Uuid.NAMESPACE_URL, paymentChannels[0].channelId);
+        getFirestore()
+            .collection("public_claim_info")
+            .doc(doc_id)
+            .get()
+            .then((value) {
+          _balance.value =
+              (paymentChannels[0].amount - (value["to_claim"] as double))
+                  .toString();
+        });
       } else {
         _balance.value = "0";
       }
