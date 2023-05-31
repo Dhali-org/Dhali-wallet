@@ -11,12 +11,13 @@ import 'package:http/http.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class XummWalletWidget extends StatefulWidget {
-  const XummWalletWidget({
-    super.key,
-    required this.getWallet,
-    required this.setWallet,
-  });
+  const XummWalletWidget(
+      {super.key,
+      required this.getWallet,
+      required this.setWallet,
+      required this.onActivation});
 
+  final void Function()? onActivation;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet?) setWallet;
 
@@ -61,6 +62,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                 widget.setWallet(
                   wallet,
                 );
+                widget.onActivation != null ? widget.onActivation!() : null;
               });
             },
             onError: (http.Response response) => {},
