@@ -406,7 +406,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                         return Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Loading balance: ",
+                              Text("Loading... ",
                                   style: TextStyle(fontSize: fontSize)),
                               CircularProgressIndicator()
                             ]);

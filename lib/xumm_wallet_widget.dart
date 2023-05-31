@@ -169,7 +169,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                             return Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Loading balance: ",
+                                  Text("Loading... ",
                                       style: TextStyle(fontSize: fontSize)),
                                   CircularProgressIndicator()
                                 ]);
