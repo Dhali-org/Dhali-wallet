@@ -97,12 +97,6 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
-  Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount) async {
-    return false;
-  }
-
-  @override
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
@@ -398,6 +392,108 @@ Channel was validated: $channelIsValidated
         logger.e("Exception caught: $e");
         logger.e("$stacktrace");
         return Future<PaymentChannelDescriptor>.error(e);
+      });
+    } catch (e, stacktrace) {
+      logger.e('Exception caught: $e');
+      logger.e(stacktrace);
+    } finally {
+      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
+      client.disconnect();
+    }
+
+    return Future.error(ImplementationErrorException(
+        "This code should never be reached, and indicates an implementation error."));
+  }
+
+  @override
+  Future<bool> fundPaymentChannel(
+      PaymentChannelDescriptor descriptor, String amount) async {
+    Client client = Client(_netUrl);
+    var logger = Logger();
+
+    final channelId = descriptor.channelId;
+    try {
+      return promiseToFuture(client.connect()).then((erg) {
+        var paymentChannelCreateTransaction = PaymentChannelFund(
+          Account: _wallet!.address,
+          TransactionType: "PaymentChannelFund",
+          Channel: channelId,
+          Amount: amount,
+        );
+        var signTransactionOptions = SignTransactionOptions(
+          autofill: true,
+          failHard: true,
+          wallet: _wallet!,
+        );
+
+        return promiseToFuture(client.submitAndWait(
+                paymentChannelCreateTransaction, signTransactionOptions))
+            .then((response) {
+          dynamic dartResponse = dartify(response);
+
+          final dynamic channel = dartResponse['result'];
+          final String channelId = dartResponse['Channel'];
+          final bool sourceAccountIsCorrect =
+              channel["Account"] == _wallet!.address;
+          final bool amountIsCorrect = channel["Amount"] == amount;
+
+          final dynamic channelMeta = channel["meta"];
+          final bool transactionWasSuccessful =
+              channelMeta["TransactionResult"] == "tesSUCCESS";
+          final bool channelIsValidated = channel["validated"] == true;
+
+          final bool channelIsValidSoFar = sourceAccountIsCorrect &&
+              amountIsCorrect &&
+              transactionWasSuccessful &&
+              channelIsValidated;
+          if (!channelIsValidSoFar) {
+            var errorMessage = '''
+Invalid attempt to fund payment channel: $channelId.
+Valid source account: $sourceAccountIsCorrect
+Amount: $amountIsCorrect
+Transaction was successful: $transactionWasSuccessful
+Channel was validated: $channelIsValidated
+                ''';
+            return Future<bool>.error(
+                InvalidPaymentChannelException(errorMessage));
+          }
+
+          dynamic affectedNodes = channelMeta["AffectedNodes"];
+
+          bool found_channel = false;
+          affectedNodes.forEach((jsAffectedNode) {
+            dynamic affectedNode = jsAffectedNode;
+
+            const String modifiedNodeKey = "modifiedNode";
+            if (!affectedNode.containsKey(modifiedNodeKey)) {
+              return;
+            }
+
+            dynamic modifiedNode = affectedNode[modifiedNodeKey];
+            final ledgerEntryType = modifiedNode["LedgerEntryType"];
+            final currentChannelId = modifiedNode["LedgerIndex"];
+            if (ledgerEntryType != "PayChannel" ||
+                currentChannelId != channelId) {
+              return;
+            }
+            found_channel = true;
+          });
+
+          if (!found_channel) {
+            return Future<bool>.error(
+                "Requested channel ID was not found in 'FundPaymentChannel' result.");
+          }
+
+          return Future<bool>.value(true);
+        }).catchError((e, stacktrace) {
+          logger.e("Exception caught: $e");
+          logger.e("$stacktrace");
+          return Future<bool>.error(e);
+        });
+      }).catchError((e, stacktrace) {
+        logger.e("Exception caught: $e");
+        logger.e("$stacktrace");
+        return Future<bool>.error(e);
       });
     } catch (e, stacktrace) {
       logger.e('Exception caught: $e');
