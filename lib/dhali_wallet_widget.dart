@@ -282,6 +282,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         screen = XummWalletWidget(
           getWallet: widget.getWallet,
           setWallet: widget.setWallet,
+          onActivation: widget.onActivation,
         );
 
         break;
