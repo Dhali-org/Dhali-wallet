@@ -26,7 +26,7 @@ class XummWallet extends DhaliWallet {
   final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
-  static String testNetUrl = 'wss://s.altnet.rippletest.net/';
+  static String testNetUrl = 'wss://testnet.xrpl-labs.com/';
   // TODO: change once prod-ready:
   static String mainnetUrl = 'NOT IMPLEMENTED YET';
 
