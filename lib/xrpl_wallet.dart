@@ -31,6 +31,10 @@ class XRPLWallet extends DhaliWallet {
   // TODO: change once prod-ready:
   static String mainnetUrl = 'NOT IMPLEMENTED YET';
 
+  PaymentChannelDescriptor?
+      _channelDescriptor; // Must only be set in updateBalance()
+  double? _toClaim; // Must only be set in updateBalance()
+
   String _netUrl = uninitialisedUrl;
 
   Wallet? _wallet;
@@ -77,18 +81,29 @@ class XRPLWallet extends DhaliWallet {
     getOpenPaymentChannels(
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
-      if (paymentChannels.isNotEmpty) {
+      if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
+        _channelDescriptor = paymentChannels[0];
         var doc_id =
-            Uuid().v5(Uuid.NAMESPACE_URL, paymentChannels[0].channelId);
+            Uuid().v5(Uuid.NAMESPACE_URL, _channelDescriptor!.channelId);
 
         getFirestore()
             .collection("public_claim_info")
             .doc(doc_id)
-            .get()
-            .then((value) {
-          _balance.value =
-              (paymentChannels[0].amount - (value as double)).toString();
+            .snapshots()
+            .listen((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            _toClaim = snapshot.data()!["to_claim"] as double;
+            _balance.value =
+                (_channelDescriptor!.amount - _toClaim!).toString();
+          } else {
+            _balance.value = _channelDescriptor!.amount.toString();
+          }
         });
+      } else if (paymentChannels.isNotEmpty) {
+        _channelDescriptor = paymentChannels[0];
+        _balance.value =
+            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
+                .toString();
       } else {
         _balance.value = "0";
       }
@@ -347,6 +362,7 @@ class XRPLWallet extends DhaliWallet {
           bool transactionWasSuccessful =
               channelMeta["TransactionResult"] == "tesSUCCESS";
           bool channelIsValidated = channel["validated"] == true;
+          updateBalance();
 
           bool channelIsValidSoFar = sourceAccountIsCorrect &&
               destinationAccountIsCorrect &&
@@ -421,6 +437,7 @@ Channel was validated: $channelIsValidated
   @override
   Future<bool> fundPaymentChannel(
       PaymentChannelDescriptor descriptor, String amount) async {
+    _channelDescriptor = descriptor;
     Client client = Client(_netUrl);
     var logger = Logger();
 
@@ -496,6 +513,8 @@ Channel was validated: $channelIsValidated
             return Future<bool>.error(
                 "Requested channel ID was not found in 'FundPaymentChannel' result.");
           }
+
+          updateBalance();
 
           return Future<bool>.value(true);
         }).catchError((e, stacktrace) {

@@ -62,8 +62,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   void initState() {
     _wallet = Wallet.UnselectedWallet;
     if (widget.getWallet() is XRPLWallet) {
+      _tabIndex = 1;
       _wallet = Wallet.RawXRPWallet;
     } else if (widget.getWallet() is XummWallet) {
+      _tabIndex = 1;
       _wallet = Wallet.XummWallet;
     }
 

@@ -36,6 +36,10 @@ class XummWallet extends DhaliWallet {
 
   SignatureClaimPair? _sigClaimPair;
 
+  PaymentChannelDescriptor?
+      _channelDescriptor; // Must only be set in updateBalance()
+  double? _toClaim; // Must only be set in updateBalance()
+
   ValueNotifier<String?> _balance = ValueNotifier(null);
 
   XummWallet(String address,
@@ -62,18 +66,29 @@ class XummWallet extends DhaliWallet {
     getOpenPaymentChannels(
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
-      if (paymentChannels.isNotEmpty) {
+      if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
+        _channelDescriptor = paymentChannels[0];
         var doc_id =
-            Uuid().v5(Uuid.NAMESPACE_URL, paymentChannels[0].channelId);
+            Uuid().v5(Uuid.NAMESPACE_URL, _channelDescriptor!.channelId);
+
         getFirestore()
             .collection("public_claim_info")
             .doc(doc_id)
-            .get()
-            .then((value) {
-          _balance.value =
-              (paymentChannels[0].amount - (value["to_claim"] as double))
-                  .toString();
+            .snapshots()
+            .listen((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            _toClaim = snapshot.data()!["to_claim"] as double;
+            _balance.value =
+                (_channelDescriptor!.amount - _toClaim!).toString();
+          } else {
+            _balance.value = _channelDescriptor!.amount.toString();
+          }
         });
+      } else if (paymentChannels.isNotEmpty) {
+        _channelDescriptor = paymentChannels[0];
+        _balance.value =
+            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
+                .toString();
       } else {
         _balance.value = "0";
       }
@@ -238,7 +253,9 @@ class XummWallet extends DhaliWallet {
       final Uri _url = Uri.parse(data["next"]["always"]);
       launchUrl(_url, mode: LaunchMode.externalApplication);
       await poll(data["uuid"],
-          onSuccess: (http.Response response) {},
+          onSuccess: (http.Response response) {
+            updateBalance();
+          },
           onError: (http.Response response) => {},
           onTimeout: () => {});
       paymentChannel =
@@ -266,6 +283,8 @@ class XummWallet extends DhaliWallet {
           dynamic dartResponse = dartify(response);
           dynamic returnedChannelDescriptors =
               dartResponse["result"]["channels"];
+
+          updateBalance();
 
           var channelDescriptors = <PaymentChannelDescriptor>[];
           returnedChannelDescriptors.forEach((returnedDescriptor) {
