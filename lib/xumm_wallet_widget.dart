@@ -114,7 +114,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                 child: const Row(
                   children: [
                     Text(
-                      'Logged in with XUMM ',
+                      'Linked with XUMM ',
                       style: TextStyle(fontSize: 18),
                     ),
                     Icon(
