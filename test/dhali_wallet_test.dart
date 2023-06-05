@@ -100,9 +100,6 @@ void main() {
       expect(find.text("Please select a wallet from 'Available wallets'"),
           findsNothing);
 
-      await tester.tap(find.byKey(const Key("raw_xrp_wallet_tile")));
-      await tester.pumpAndSettle();
-
       expect(find.text('Balance: 1 XRP'), findsOneWidget);
       expect(find.text('Classic address: a-random-address'), findsOneWidget);
       expect(find.text('Memorable words: '), findsOneWidget);
@@ -165,7 +162,7 @@ void main() {
     await tester.tap(find.byKey(const Key("xumm_wallet_tile")));
     await tester.pumpAndSettle();
     expect(find.text('Status:'), findsOneWidget);
-    expect(find.text('Logged in with XUMM '), findsOneWidget);
+    expect(find.text('Linked with XUMM '), findsOneWidget);
     expect(find.text('Classic address:'), findsOneWidget);
     expect(find.text("a-random-address"), findsOneWidget);
     expect(find.text('Dhali balance:'), findsOneWidget);

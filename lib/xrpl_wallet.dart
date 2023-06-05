@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:flutter/material.dart';
 import 'dart:html';
 import 'package:node_interop/util.dart';
 import 'package:logger/logger.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:xrpl/xrpl.dart';
 
@@ -22,11 +24,16 @@ import 'package:xrpl/xrpl.dart';
 //   corresponding new XRP account.  PoC => hot wallet only)
 
 class XRPLWallet extends DhaliWallet {
+  final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
   // TODO: change once prod-ready:
   static String mainnetUrl = 'NOT IMPLEMENTED YET';
+
+  PaymentChannelDescriptor?
+      _channelDescriptor; // Must only be set in updateBalance()
+  double? _toClaim; // Must only be set in updateBalance()
 
   String _netUrl = uninitialisedUrl;
 
@@ -35,7 +42,7 @@ class XRPLWallet extends DhaliWallet {
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
 
-  XRPLWallet(String seed, {bool testMode = false}) {
+  XRPLWallet(String seed, {required this.getFirestore, bool testMode = false}) {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     mnemonic = seed;
 
@@ -74,8 +81,29 @@ class XRPLWallet extends DhaliWallet {
     getOpenPaymentChannels(
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
-      if (paymentChannels.isNotEmpty) {
-        _balance.value = paymentChannels[0].amount.toString();
+      if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
+        _channelDescriptor = paymentChannels[0];
+        var doc_id =
+            Uuid().v5(Uuid.NAMESPACE_URL, _channelDescriptor!.channelId);
+
+        getFirestore()
+            .collection("public_claim_info")
+            .doc(doc_id)
+            .snapshots()
+            .listen((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            _toClaim = snapshot.data()!["to_claim"] as double;
+            _balance.value =
+                (_channelDescriptor!.amount - _toClaim!).toString();
+          } else {
+            _balance.value = _channelDescriptor!.amount.toString();
+          }
+        });
+      } else if (paymentChannels.isNotEmpty) {
+        _channelDescriptor = paymentChannels[0];
+        _balance.value =
+            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
+                .toString();
       } else {
         _balance.value = "0";
       }
@@ -334,6 +362,7 @@ class XRPLWallet extends DhaliWallet {
           bool transactionWasSuccessful =
               channelMeta["TransactionResult"] == "tesSUCCESS";
           bool channelIsValidated = channel["validated"] == true;
+          updateBalance();
 
           bool channelIsValidSoFar = sourceAccountIsCorrect &&
               destinationAccountIsCorrect &&
@@ -408,6 +437,7 @@ Channel was validated: $channelIsValidated
   @override
   Future<bool> fundPaymentChannel(
       PaymentChannelDescriptor descriptor, String amount) async {
+    _channelDescriptor = descriptor;
     Client client = Client(_netUrl);
     var logger = Logger();
 
@@ -483,6 +513,8 @@ Channel was validated: $channelIsValidated
             return Future<bool>.error(
                 "Requested channel ID was not found in 'FundPaymentChannel' result.");
           }
+
+          updateBalance();
 
           return Future<bool>.value(true);
         }).catchError((e, stacktrace) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
@@ -10,6 +11,7 @@ import 'package:node_interop/util.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:xrpl/xrpl.dart';
 
@@ -21,6 +23,7 @@ class SignatureClaimPair {
 }
 
 class XummWallet extends DhaliWallet {
+  final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
@@ -33,9 +36,15 @@ class XummWallet extends DhaliWallet {
 
   SignatureClaimPair? _sigClaimPair;
 
+  PaymentChannelDescriptor?
+      _channelDescriptor; // Must only be set in updateBalance()
+  double? _toClaim; // Must only be set in updateBalance()
+
   ValueNotifier<String?> _balance = ValueNotifier(null);
 
-  XummWallet(String address, {bool testMode = false}) : _address = address {
+  XummWallet(String address,
+      {required this.getFirestore, bool testMode = false})
+      : _address = address {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     Client client = Client(_netUrl);
     var logger = Logger();
@@ -57,8 +66,29 @@ class XummWallet extends DhaliWallet {
     getOpenPaymentChannels(
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
-      if (paymentChannels.isNotEmpty) {
-        _balance.value = paymentChannels[0].amount.toString();
+      if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
+        _channelDescriptor = paymentChannels[0];
+        var doc_id =
+            Uuid().v5(Uuid.NAMESPACE_URL, _channelDescriptor!.channelId);
+
+        getFirestore()
+            .collection("public_claim_info")
+            .doc(doc_id)
+            .snapshots()
+            .listen((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            _toClaim = snapshot.data()!["to_claim"] as double;
+            _balance.value =
+                (_channelDescriptor!.amount - _toClaim!).toString();
+          } else {
+            _balance.value = _channelDescriptor!.amount.toString();
+          }
+        });
+      } else if (paymentChannels.isNotEmpty) {
+        _channelDescriptor = paymentChannels[0];
+        _balance.value =
+            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
+                .toString();
       } else {
         _balance.value = "0";
       }
@@ -223,7 +253,9 @@ class XummWallet extends DhaliWallet {
       final Uri _url = Uri.parse(data["next"]["always"]);
       launchUrl(_url, mode: LaunchMode.externalApplication);
       await poll(data["uuid"],
-          onSuccess: (http.Response response) {},
+          onSuccess: (http.Response response) {
+            updateBalance();
+          },
           onError: (http.Response response) => {},
           onTimeout: () => {});
       paymentChannel =
@@ -251,6 +283,8 @@ class XummWallet extends DhaliWallet {
           dynamic dartResponse = dartify(response);
           dynamic returnedChannelDescriptors =
               dartResponse["result"]["channels"];
+
+          updateBalance();
 
           var channelDescriptors = <PaymentChannelDescriptor>[];
           returnedChannelDescriptors.forEach((returnedDescriptor) {
