@@ -189,12 +189,16 @@ class XummWallet extends DhaliWallet {
       return promiseToFuture(client.request(request)).then((response) {
         dynamic dartResponse = dartify(response);
         return dartResponse;
-      }).catchError((e, stacktrace) {
-        var logger = Logger();
-        logger.e("Exception caught from future: $e");
-        logger.e("Stack trace: $stacktrace");
-        return Future<dynamic>.error(e);
       });
+    }).whenComplete(() {
+      var logger = Logger();
+      logger.d("Xumm.submitRequest");
+      client.disconnect();
+    }).catchError((e, stacktrace) {
+      var logger = Logger();
+      logger.e("Exception caught from future: $e");
+      logger.e("Stack trace: $stacktrace");
+      return Future<dynamic>.error(e);
     });
   }
 
@@ -212,9 +216,6 @@ class XummWallet extends DhaliWallet {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<List<PaymentChannelDescriptor>>.error(e);
-    } finally {
-      // TODO: This looks like the source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
@@ -222,14 +223,70 @@ class XummWallet extends DhaliWallet {
 
   @override
   Future<bool> acceptOffer(String offerIndex) async {
-    return false;
+    http.Response response = await XummRequest({
+      "TransactionType": "NFTokenAcceptOffer",
+      "NFTokenSellOffer": offerIndex,
+      "Account": address
+    }, null);
+    var data = jsonDecode(response.body) as Map<String, dynamic>;
+    final Uri _url = Uri.parse(data["next"]["always"]);
+    launchUrl(_url, mode: LaunchMode.externalApplication);
+    await poll(data["uuid"],
+        onSuccess: (http.Response response) => {},
+        onError: (http.Response response) => {},
+        onTimeout: () => {});
+
+    if (response.statusCode != 200) {
+      throw HttpException("XUMM api rejected request");
+    } else {
+      return true;
+    }
   }
 
   @override
   Future<List<NFTOffer>> getNFTOffers(
     String nfTokenId,
   ) async {
-    return [];
+    Client client = Client(_netUrl);
+
+    var logger = Logger();
+
+    var nftSellOffersRequest =
+        NFTSellOffersRequest(command: "nft_sell_offers", nft_id: nfTokenId);
+
+    return promiseToFuture(client.connect()).then((_) {
+      return promiseToFuture(client.request(nftSellOffersRequest))
+          .then((response) {
+        dynamic dartResponse = dartify(response);
+        dynamic result = dartResponse["result"];
+
+        // Confirm that it's the correct NFTokenId:
+        if (result["nft_id"] != nfTokenId) {
+          return Future<List<NFTOffer>>.error(
+              "Unexpected NFToken ID received: \"${result['nft_id']}\" when querying for offers for \"nfTokenId\".");
+        }
+
+        List<NFTOffer> offers = [];
+        dynamic responseOffers = result["offers"];
+        responseOffers.forEach((offer) {
+          offers.add(NFTOffer(int.parse(offer["amount"]), offer["owner"],
+              offer["destination"], offer["nft_offer_index"]));
+        });
+        return Future<List<NFTOffer>>.value(offers);
+      }).catchError((e, stacktrace) {
+        logger.e("Exception caught from future: $e");
+        logger.e("Stack trace: $stacktrace");
+        return Future<List<NFTOffer>>.error(e);
+      });
+    }).whenComplete(() {
+      var logger = Logger();
+      logger.d("Xumm.getNFTOffers");
+      client.disconnect();
+    }).catchError((e, stacktrace) {
+      logger.e("Exception caught from future: $e");
+      logger.e("Stack trace: $stacktrace");
+      return Future<List<NFTOffer>>.error(e);
+    });
   }
 
   @override
@@ -253,9 +310,7 @@ class XummWallet extends DhaliWallet {
       final Uri _url = Uri.parse(data["next"]["always"]);
       launchUrl(_url, mode: LaunchMode.externalApplication);
       await poll(data["uuid"],
-          onSuccess: (http.Response response) {
-            updateBalance();
-          },
+          onSuccess: (http.Response response) => {},
           onError: (http.Response response) => {},
           onTimeout: () => {});
       paymentChannel =
@@ -284,8 +339,6 @@ class XummWallet extends DhaliWallet {
           dynamic returnedChannelDescriptors =
               dartResponse["result"]["channels"];
 
-          updateBalance();
-
           var channelDescriptors = <PaymentChannelDescriptor>[];
           returnedChannelDescriptors.forEach((returnedDescriptor) {
             dynamic dartDescriptor = returnedDescriptor;
@@ -300,14 +353,19 @@ class XummWallet extends DhaliWallet {
           logger.e("Stack trace: $stacktrace");
           return Future<List<PaymentChannelDescriptor>>.error(e);
         });
+      }).whenComplete(() {
+        var logger = Logger();
+        logger.d("Xumm.getOpenPaymentChannels");
+        client.disconnect();
+      }).catchError((e, stacktrace) {
+        logger.e("Exception caught from future: $e");
+        logger.e("Stack trace: $stacktrace");
+        return Future<List<PaymentChannelDescriptor>>.error(e);
       });
     } catch (e, stacktrace) {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<List<PaymentChannelDescriptor>>.error(e);
-    } finally {
-      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
