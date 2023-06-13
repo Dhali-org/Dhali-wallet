@@ -59,22 +59,23 @@ class XRPLWallet extends DhaliWallet {
       return;
     }
 
-    try {
-      promiseToFuture(client.connect()).then((erg) {
-        // TODO: Remove this in the future
-        promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
-          String address = _wallet!.address;
-          promiseToFuture(client.getXrpBalance(address)).then((balanceString) {
-            updateBalance();
-          }).whenComplete(() {
-            client.disconnect();
-          });
+    promiseToFuture(client.connect()).then((erg) {
+      // TODO: Remove this in the future
+      return promiseToFuture(client.fundWallet(_wallet, null)).then((e) {
+        String address = _wallet!.address;
+        return promiseToFuture(client.getXrpBalance(address))
+            .then((balanceString) {
+          updateBalance();
         });
       });
-    } catch (e, stacktrace) {
-      logger.e('Exception caught: ${e.toString()}');
-      logger.e(stacktrace);
-    }
+    }).whenComplete(() {
+      client.disconnect();
+    }).catchError((e, stacktrace) {
+      var logger = Logger();
+      logger.e("Exception caught from future: $e");
+      logger.e("Stack trace: $stacktrace");
+      return Future<dynamic>.error(e);
+    });
   }
 
   Future<void> updateBalance() async {
@@ -147,12 +148,14 @@ class XRPLWallet extends DhaliWallet {
       return promiseToFuture(client.request(request)).then((response) {
         dynamic dartResponse = dartify(response);
         return dartResponse;
-      }).catchError((e, stacktrace) {
-        var logger = Logger();
-        logger.e("Exception caught from future: $e");
-        logger.e("Stack trace: $stacktrace");
-        return Future<dynamic>.error(e);
       });
+    }).whenComplete(() {
+      client.disconnect();
+    }).catchError((e, stacktrace) {
+      var logger = Logger();
+      logger.e("Exception caught from future: $e");
+      logger.e("Stack trace: $stacktrace");
+      return Future<dynamic>.error(e);
     });
   }
 
@@ -170,9 +173,6 @@ class XRPLWallet extends DhaliWallet {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<List<PaymentChannelDescriptor>>.error(e);
-    } finally {
-      // TODO: This looks like the source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
@@ -207,6 +207,8 @@ class XRPLWallet extends DhaliWallet {
           logger.e("Stack trace: $stacktrace");
           return Future<bool>.error(e);
         });
+      }).whenComplete(() {
+        client.disconnect();
       }).catchError((e, stacktrace) {
         logger.e("Exception caught from future: $e");
         logger.e("Stack trace: $stacktrace");
@@ -216,9 +218,6 @@ class XRPLWallet extends DhaliWallet {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<bool>.error(e);
-    } finally {
-      // TODO: This looks a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
@@ -254,11 +253,9 @@ class XRPLWallet extends DhaliWallet {
                 offer["destination"], offer["nft_offer_index"]));
           });
           return Future<List<NFTOffer>>.value(offers);
-        }).catchError((e, stacktrace) {
-          logger.e("Exception caught from future: $e");
-          logger.e("Stack trace: $stacktrace");
-          return Future<List<NFTOffer>>.error(e);
         });
+      }).whenComplete(() {
+        client.disconnect();
       }).catchError((e, stacktrace) {
         logger.e("Exception caught from future: $e");
         logger.e("Stack trace: $stacktrace");
@@ -268,9 +265,6 @@ class XRPLWallet extends DhaliWallet {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<List<NFTOffer>>.error(e);
-    } finally {
-      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
@@ -305,19 +299,18 @@ class XRPLWallet extends DhaliWallet {
           });
           return Future<List<PaymentChannelDescriptor>>.value(
               channelDescriptors);
-        }).catchError((e, stacktrace) {
-          logger.e("Exception caught from future: $e");
-          logger.e("Stack trace: $stacktrace");
-          return Future<List<PaymentChannelDescriptor>>.error(e);
         });
+      }).whenComplete(() {
+        client.disconnect();
+      }).catchError((e, stacktrace) {
+        logger.e("Exception caught from future: $e");
+        logger.e("Stack trace: $stacktrace");
+        return Future<List<PaymentChannelDescriptor>>.error(e);
       });
     } catch (e, stacktrace) {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
       return Future<List<PaymentChannelDescriptor>>.error(e);
-    } finally {
-      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
     return Future.error(ImplementationErrorException(
         "This code should never be reached, and indicates an implementation error."));
@@ -417,6 +410,8 @@ Channel was validated: $channelIsValidated
           logger.e("$stacktrace");
           return Future<PaymentChannelDescriptor>.error(e);
         });
+      }).whenComplete(() {
+        client.disconnect();
       }).catchError((e, stacktrace) {
         logger.e("Exception caught: $e");
         logger.e("$stacktrace");
@@ -425,9 +420,6 @@ Channel was validated: $channelIsValidated
     } catch (e, stacktrace) {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
-    } finally {
-      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
 
     return Future.error(ImplementationErrorException(
@@ -522,6 +514,8 @@ Channel was validated: $channelIsValidated
           logger.e("$stacktrace");
           return Future<bool>.error(e);
         });
+      }).whenComplete(() {
+        client.disconnect();
       }).catchError((e, stacktrace) {
         logger.e("Exception caught: $e");
         logger.e("$stacktrace");
@@ -530,9 +524,6 @@ Channel was validated: $channelIsValidated
     } catch (e, stacktrace) {
       logger.e('Exception caught: $e');
       logger.e(stacktrace);
-    } finally {
-      // TODO: This looks like a potential source of race conditions with the asyncronous function calls above - maybe an RAII-style wrapped class would be appropriate to use instead of doing this.
-      client.disconnect();
     }
 
     return Future.error(ImplementationErrorException(
