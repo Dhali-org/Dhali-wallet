@@ -454,7 +454,7 @@ Channel was validated: $channelIsValidated
           dynamic dartResponse = dartify(response);
 
           final dynamic channel = dartResponse['result'];
-          final String channelId = dartResponse['Channel'];
+          final String channelId = channel['Channel'];
           final bool sourceAccountIsCorrect =
               channel["Account"] == _wallet!.address;
           final bool amountIsCorrect = channel["Amount"] == amount;
