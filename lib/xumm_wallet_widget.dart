@@ -92,7 +92,6 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
 
   Widget viewAccount() {
     const double fontSize = 20;
-    Color? textColor = Colors.white;
     return Center(
       child: Table(
         defaultColumnWidth: IntrinsicColumnWidth(),
@@ -175,7 +174,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                                 ]);
                           }
                           return Text('${double.parse(balance) / 1000000} XRP ',
-                              style: TextStyle(fontSize: 18, color: textColor));
+                              style: TextStyle(fontSize: 18));
                         }),
                     IconButton(
                         icon: Icon(Icons.info),
