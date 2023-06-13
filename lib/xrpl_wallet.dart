@@ -480,32 +480,6 @@ Channel was validated: $channelIsValidated
                 InvalidPaymentChannelException(errorMessage));
           }
 
-          dynamic affectedNodes = channelMeta["AffectedNodes"];
-
-          bool found_channel = false;
-          affectedNodes.forEach((jsAffectedNode) {
-            dynamic affectedNode = jsAffectedNode;
-
-            const String modifiedNodeKey = "modifiedNode";
-            if (!affectedNode.containsKey(modifiedNodeKey)) {
-              return;
-            }
-
-            dynamic modifiedNode = affectedNode[modifiedNodeKey];
-            final ledgerEntryType = modifiedNode["LedgerEntryType"];
-            final currentChannelId = modifiedNode["LedgerIndex"];
-            if (ledgerEntryType != "PayChannel" ||
-                currentChannelId != channelId) {
-              return;
-            }
-            found_channel = true;
-          });
-
-          if (!found_channel) {
-            return Future<bool>.error(
-                "Requested channel ID was not found in 'FundPaymentChannel' result.");
-          }
-
           updateBalance();
 
           return Future<bool>.value(true);
