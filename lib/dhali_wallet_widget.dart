@@ -48,6 +48,22 @@ class WalletHomeScreen extends StatefulWidget {
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
 }
 
+class ColoredTabBar extends Container implements PreferredSizeWidget {
+  ColoredTabBar(this.color, this.tabBar);
+
+  final Color? color;
+  final TabBar tabBar;
+
+  @override
+  Size get preferredSize => tabBar.preferredSize;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        color: color,
+        child: tabBar,
+      );
+}
+
 // TODO: Metamask-style phrase creation and verification
 class _WalletHomeScreenState extends State<WalletHomeScreen> {
   // TODO: pull the fields below from wallet
@@ -78,22 +94,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         length: 2,
         initialIndex: _tabIndex,
         child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: widget.appBarColor,
-              foregroundColor: widget.appBarTextColor,
-              bottom: TabBar(
-                tabs: [
-                  Tab(
-                    icon: Icon(Icons.wallet),
-                    text: "Available wallets",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.account_box_outlined),
-                    text: "Active wallet",
-                  ),
-                ],
-              ),
-            ),
+            appBar: ColoredTabBar(
+                widget.appBarColor,
+                TabBar(
+                  labelColor: widget.appBarTextColor,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.wallet),
+                      text: "Available wallets",
+                    ),
+                    Tab(
+                      icon: Icon(Icons.account_box_outlined),
+                      text: "Active wallet",
+                    ),
+                  ],
+                )),
             body: TabBarView(
               children: [
                 AllWallets(),
