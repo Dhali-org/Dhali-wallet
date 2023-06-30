@@ -454,7 +454,7 @@ Channel was validated: $channelIsValidated
           dynamic dartResponse = dartify(response);
 
           final dynamic channel = dartResponse['result'];
-          final String channelId = dartResponse['Channel'];
+          final String channelId = channel['Channel'];
           final bool sourceAccountIsCorrect =
               channel["Account"] == _wallet!.address;
           final bool amountIsCorrect = channel["Amount"] == amount;
@@ -478,32 +478,6 @@ Channel was validated: $channelIsValidated
                 ''';
             return Future<bool>.error(
                 InvalidPaymentChannelException(errorMessage));
-          }
-
-          dynamic affectedNodes = channelMeta["AffectedNodes"];
-
-          bool found_channel = false;
-          affectedNodes.forEach((jsAffectedNode) {
-            dynamic affectedNode = jsAffectedNode;
-
-            const String modifiedNodeKey = "modifiedNode";
-            if (!affectedNode.containsKey(modifiedNodeKey)) {
-              return;
-            }
-
-            dynamic modifiedNode = affectedNode[modifiedNodeKey];
-            final ledgerEntryType = modifiedNode["LedgerEntryType"];
-            final currentChannelId = modifiedNode["LedgerIndex"];
-            if (ledgerEntryType != "PayChannel" ||
-                currentChannelId != channelId) {
-              return;
-            }
-            found_channel = true;
-          });
-
-          if (!found_channel) {
-            return Future<bool>.error(
-                "Requested channel ID was not found in 'FundPaymentChannel' result.");
           }
 
           updateBalance();

@@ -48,6 +48,22 @@ class WalletHomeScreen extends StatefulWidget {
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
 }
 
+class ColoredTabBar extends Container implements PreferredSizeWidget {
+  ColoredTabBar(this.color, this.tabBar);
+
+  final Color? color;
+  final TabBar tabBar;
+
+  @override
+  Size get preferredSize => tabBar.preferredSize;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        color: color,
+        child: tabBar,
+      );
+}
+
 // TODO: Metamask-style phrase creation and verification
 class _WalletHomeScreenState extends State<WalletHomeScreen> {
   // TODO: pull the fields below from wallet
@@ -78,22 +94,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         length: 2,
         initialIndex: _tabIndex,
         child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: widget.appBarColor,
-              foregroundColor: widget.appBarTextColor,
-              bottom: TabBar(
-                tabs: [
-                  Tab(
-                    icon: Icon(Icons.wallet),
-                    text: "Available wallets",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.account_box_outlined),
-                    text: "Active wallet",
-                  ),
-                ],
-              ),
-            ),
+            appBar: ColoredTabBar(
+                widget.appBarColor,
+                TabBar(
+                  labelColor: widget.appBarTextColor,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.wallet),
+                      text: "Available wallets",
+                    ),
+                    Tab(
+                      icon: Icon(Icons.account_box_outlined),
+                      text: "Active wallet",
+                    ),
+                  ],
+                )),
             body: TabBarView(
               children: [
                 AllWallets(),
@@ -320,60 +335,91 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   }
 
   Widget AllWallets() {
-    return GridView.builder(
-        itemCount: Wallet.values.length - 1,
-        padding: const EdgeInsets.only(top: 8),
-        scrollDirection: Axis.vertical,
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 600, childAspectRatio: 2),
-        itemBuilder: (BuildContext context, int index) {
-          final wallet = Wallet.values[index];
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverList(
+          delegate: SliverChildListDelegate([
+            const SizedBox(
+              height: 50,
+            ),
+            const Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Selecting a wallet below allows access to '
+                'Dhali services',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+          ]),
+        ),
+        SliverGrid(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 500,
+            childAspectRatio: 2,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              final wallet = Wallet.values[index];
 
-          Image image;
-          if (wallet == Wallet.XummWallet) {
-            image = Image.asset(
-                key: const Key("xumm_wallet_tile"),
-                widget.isImported
-                    ? 'packages/dhali_wallet/assets/images/xumm.png'
-                    : 'assets/images/xumm.png');
-          } else if (wallet == Wallet.RawXRPWallet) {
-            image = Image.asset(
-                key: const Key("raw_xrp_wallet_tile"),
-                widget.isImported
-                    ? 'packages/dhali_wallet/assets/images/xrp.png'
-                    : 'assets/images/xrp.png');
-          } else if (wallet == Wallet.Fynbos) {
-            image = Image.asset(
-                key: const Key("fynbos_wallet_tile"),
-                widget.isImported
-                    ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                    : 'assets/images/fynbos.png');
-          } else {
-            image = Image.asset(
-                key: const Key("metamask_wallet_tile"),
-                widget.isImported
-                    ? 'packages/dhali_wallet/assets/images/metamask.jpg'
-                    : 'assets/images/metamask.jpg');
-          }
+              Image image;
+              if (wallet == Wallet.XummWallet) {
+                image = Image.asset(
+                    key: const Key("xumm_wallet_tile"),
+                    widget.isImported
+                        ? 'packages/dhali_wallet/assets/images/xumm.png'
+                        : 'assets/images/xumm.png');
+              } else if (wallet == Wallet.RawXRPWallet) {
+                image = Image.asset(
+                    key: const Key("raw_xrp_wallet_tile"),
+                    widget.isImported
+                        ? 'packages/dhali_wallet/assets/images/xrp.png'
+                        : 'assets/images/xrp.png');
+              } else if (wallet == Wallet.Fynbos) {
+                image = Image.asset(
+                    key: const Key("fynbos_wallet_tile"),
+                    widget.isImported
+                        ? 'packages/dhali_wallet/assets/images/fynbos.png'
+                        : 'assets/images/fynbos.png');
+              } else {
+                image = Image.asset(
+                    key: const Key("metamask_wallet_tile"),
+                    widget.isImported
+                        ? 'packages/dhali_wallet/assets/images/metamask.jpg'
+                        : 'assets/images/metamask.jpg');
+              }
 
-          return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _wallet = wallet;
-                  TabController? tabController =
-                      DefaultTabController.of(context);
-                  if (tabController != null) {
-                    tabController
-                        .animateTo(1); // Switch to the second tab (index 1)
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: image,
-              ));
-          ;
-        });
+              return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _wallet = wallet;
+                      TabController? tabController =
+                          DefaultTabController.of(context);
+                      if (tabController != null) {
+                        tabController
+                            .animateTo(1); // Switch to the second tab (index 1)
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: image,
+                  ));
+              ;
+            },
+            childCount: Wallet.values.length - 1,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget UnselectedWallet() {
