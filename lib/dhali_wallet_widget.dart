@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
-import 'package:dhali_wallet/xumm_wallet_widget.dart';
+import 'package:dhali_wallet/xrpl_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
