@@ -271,24 +271,49 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
 
                       double? number = double.tryParse(_numberController.text);
                       if (number != null) {
-                        number *= 1000000; // Convert to drops
-                        // Valid number, proceed with submission
-                        List<PaymentChannelDescriptor> channelDescriptors =
-                            await widget.getWallet()!.getOpenPaymentChannels(
-                                destination_address:
-                                    "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
-                        if (channelDescriptors.isEmpty) {
-                          // TODO : depend on Dhali public address
-                          channelDescriptors = [
-                            await widget.getWallet()!.openPaymentChannel(
-                                "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
-                                _numberController.text)
-                          ];
+                        bool fundingSuccess = false;
+                        if (mounted) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible:
+                                false, // Disallow dismiss by touching outside
+                            builder: (BuildContext context) {
+                              return const AlertDialog(
+                                title: Text('Funding channel'),
+                                content: Row(
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(width: 10),
+                                    Text("Please wait..."),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                          number *= 1000000; // Convert to drops
+                          // Valid number, proceed with submission
+                          List<PaymentChannelDescriptor> channelDescriptors =
+                              await widget.getWallet()!.getOpenPaymentChannels(
+                                  destination_address:
+                                      "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
+                          if (channelDescriptors.isEmpty) {
+                            // TODO : depend on Dhali public address
+                            channelDescriptors = [
+                              await widget.getWallet()!.openPaymentChannel(
+                                  "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
+                                  _numberController.text)
+                            ];
+                          }
+
+                          fundingSuccess = await widget
+                              .getWallet()!
+                              .fundPaymentChannel(channelDescriptors[0],
+                                  "${double.parse(_numberController.text) * 1000000}");
+                          if (Navigator.canPop(context)) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                        bool fundingSuccess = await widget
-                            .getWallet()!
-                            .fundPaymentChannel(channelDescriptors[0],
-                                "${double.parse(_numberController.text) * 1000000}");
+
                         print("fundingSuccess: " + fundingSuccess.toString());
                         // mounted required to avoid warning
                         // "Don't use 'BuildContext's across async gaps."
