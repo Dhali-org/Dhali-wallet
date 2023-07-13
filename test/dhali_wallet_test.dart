@@ -100,9 +100,12 @@ void main() {
       expect(find.text("Please select a wallet from 'Available wallets'"),
           findsNothing);
 
-      expect(find.text('Balance: 1 XRP'), findsOneWidget);
-      expect(find.text('Classic address: a-random-address'), findsOneWidget);
-      expect(find.text('Memorable words: '), findsOneWidget);
+      expect(find.text('Status:'), findsOneWidget);
+      expect(find.text('Linked with XRPL '), findsOneWidget);
+      expect(find.text('Classic address:'), findsOneWidget);
+      expect(find.text("a-random-address"), findsOneWidget);
+      expect(find.text('Dhali balance:'), findsOneWidget);
+      expect(find.text('1 XRP '), findsOneWidget);
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();

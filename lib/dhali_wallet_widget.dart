@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
-import 'package:dhali_wallet/xumm_wallet_widget.dart';
+import 'package:dhali_wallet/xrpl_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
@@ -299,12 +299,17 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         if (widget.getWallet() is! XRPLWallet) {
           screen = CreateRawXRPLWallet();
         } else {
-          screen = RawXRPWallet(widget.getWallet()! as XRPLWallet,
-              textColor: widget.bodyTextColor);
+          screen = XRPLWalletWidget(
+            walletType: Wallet.RawXRPWallet,
+            getWallet: widget.getWallet,
+            setWallet: widget.setWallet,
+            onActivation: widget.onActivation,
+          );
         }
         break;
       case Wallet.XummWallet:
-        screen = XummWalletWidget(
+        screen = XRPLWalletWidget(
+          walletType: Wallet.XummWallet,
           getWallet: widget.getWallet,
           setWallet: widget.setWallet,
           onActivation: widget.onActivation,
@@ -429,77 +434,5 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
       ),
     );
-  }
-
-  Widget RawXRPWallet(XRPLWallet wallet,
-      {bool hideMnemonic = true, Color? textColor = Colors.black}) {
-    const double fontSize = 20;
-    return Center(
-        key: const Key("raw_xrp_wallet"),
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            //const Center(
-            //  child: const Padding(
-            //padding: EdgeInsets.symmetric(horizontal: 200.0,
-            //                        vertical: 100.0),
-            //    child: BalanceChart(),
-            //  )
-            //),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0),
-                child: ValueListenableBuilder<String?>(
-                    valueListenable: wallet.balance,
-                    builder:
-                        (BuildContext context, String? balance, Widget? _) {
-                      if (balance == null) {
-                        return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Loading... ",
-                                  style: TextStyle(fontSize: fontSize)),
-                              CircularProgressIndicator()
-                            ]);
-                      }
-                      balance = (double.parse(balance) / 1000000).toString();
-                      return SelectableText('Balance: $balance XRP',
-                          style: TextStyle(fontSize: 25, color: textColor));
-                    }),
-              ),
-            ),
-            Center(
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 25.0),
-                  child: SelectableText(
-                    'Classic address: ${wallet.address}',
-                    style: TextStyle(fontSize: fontSize, color: textColor),
-                  )),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SelectableText('Memorable words: ',
-                    style: TextStyle(fontSize: fontSize, color: textColor)),
-                SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    final dataUri =
-                        'data:text/plain;charset=utf-8,${wallet.mnemonic!}';
-                    html.document.createElement('a') as html.AnchorElement
-                      ..href = dataUri
-                      ..download = 'dhali_xrp_wallet_secret_words.txt'
-                      ..dispatchEvent(
-                          html.Event.eventType('MouseEvent', 'click'));
-                  },
-                  child: const Icon(
-                    Icons.download,
-                    color: Colors.grey,
-                  ),
-                )
-              ],
-            ),
-          ],
-        ));
   }
 }
