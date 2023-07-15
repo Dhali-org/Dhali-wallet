@@ -1,19 +1,23 @@
 import 'dart:convert';
 import 'dart:html';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dhali_wallet/dhali_wallet_widget.dart';
 import 'package:dhali_wallet/wallet_types.dart';
+import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
+import 'dart:html' as html;
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class XummWalletWidget extends StatefulWidget {
-  const XummWalletWidget(
+class XRPLWalletWidget extends StatefulWidget {
+  const XRPLWalletWidget(
       {super.key,
+      required this.walletType,
       required this.getWallet,
       required this.setWallet,
       required this.onActivation});
@@ -21,12 +25,13 @@ class XummWalletWidget extends StatefulWidget {
   final void Function()? onActivation;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet?) setWallet;
+  final Wallet walletType;
 
   @override
-  State<XummWalletWidget> createState() => _XummWalletWidgetState();
+  State<XRPLWalletWidget> createState() => _XRPLWalletWidgetState();
 }
 
-class _XummWalletWidgetState extends State<XummWalletWidget> {
+class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   double xummTimeout = 0.0;
   bool waiting = false;
   TextEditingController _numberController = TextEditingController();
@@ -34,7 +39,16 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
   PaymentChannelDescriptor? _descriptor;
   @override
   Widget build(BuildContext context) {
-    return widget.getWallet() is XummWallet ? viewAccount() : signin();
+    if (widget.walletType == Wallet.RawXRPWallet) {
+      return widget.getWallet() is XRPLWallet ||
+              widget.getWallet() is XummWallet
+          ? viewAccount()
+          : signin();
+    } else if (widget.walletType == Wallet.XummWallet) {
+      return widget.getWallet() is XummWallet ? viewAccount() : signin();
+    } else {
+      throw Error();
+    }
   }
 
   Widget signin() {
@@ -110,10 +124,10 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
               TableCell(
                   child: Container(
                 margin: EdgeInsets.all(8),
-                child: const Row(
+                child: Row(
                   children: [
                     Text(
-                      'Linked with XUMM ',
+                      'Linked with ${widget.getWallet() is XRPLWallet ? "XRPL" : "XUMM"} ',
                       style: TextStyle(fontSize: 18),
                     ),
                     Icon(
@@ -257,24 +271,49 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
 
                       double? number = double.tryParse(_numberController.text);
                       if (number != null) {
-                        number *= 1000000; // Convert to drops
-                        // Valid number, proceed with submission
-                        List<PaymentChannelDescriptor> channelDescriptors =
-                            await widget.getWallet()!.getOpenPaymentChannels(
-                                destination_address:
-                                    "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
-                        if (channelDescriptors.isEmpty) {
-                          // TODO : depend on Dhali public address
-                          channelDescriptors = [
-                            await widget.getWallet()!.openPaymentChannel(
-                                "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
-                                _numberController.text)
-                          ];
+                        bool fundingSuccess = false;
+                        if (mounted) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible:
+                                false, // Disallow dismiss by touching outside
+                            builder: (BuildContext context) {
+                              return const AlertDialog(
+                                title: Text('Funding channel'),
+                                content: Row(
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(width: 10),
+                                    Text("Please wait..."),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                          number *= 1000000; // Convert to drops
+                          // Valid number, proceed with submission
+                          List<PaymentChannelDescriptor> channelDescriptors =
+                              await widget.getWallet()!.getOpenPaymentChannels(
+                                  destination_address:
+                                      "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
+                          if (channelDescriptors.isEmpty) {
+                            // TODO : depend on Dhali public address
+                            channelDescriptors = [
+                              await widget.getWallet()!.openPaymentChannel(
+                                  "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
+                                  _numberController.text)
+                            ];
+                          }
+
+                          fundingSuccess = await widget
+                              .getWallet()!
+                              .fundPaymentChannel(channelDescriptors[0],
+                                  "${double.parse(_numberController.text) * 1000000}");
+                          if (Navigator.canPop(context)) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                        bool fundingSuccess = await widget
-                            .getWallet()!
-                            .fundPaymentChannel(channelDescriptors[0],
-                                "${double.parse(_numberController.text) * 1000000}");
+
                         print("fundingSuccess: " + fundingSuccess.toString());
                         // mounted required to avoid warning
                         // "Don't use 'BuildContext's across async gaps."
@@ -304,7 +343,7 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
                                 return AlertDialog(
                                   title: Text('Success'),
                                   content: Text('Your funding request was '
-                                      'successful. Please check your XUMM '
+                                      'successful. Please check your '
                                       'wallet for the status.'),
                                   actions: [
                                     TextButton(
@@ -328,6 +367,40 @@ class _XummWalletWidgetState extends State<XummWalletWidget> {
               ),
             ],
           ),
+          if (widget.getWallet() is XRPLWallet)
+            TableRow(
+              children: [
+                TableCell(
+                  child: Container(
+                    margin: EdgeInsets.all(8),
+                    child: Text('Memorable words:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                TableCell(
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    margin: EdgeInsets.all(8),
+                    child: GestureDetector(
+                      onTap: () {
+                        final dataUri =
+                            'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                        html.document.createElement('a') as html.AnchorElement
+                          ..href = dataUri
+                          ..download = 'dhali_xrp_wallet_secret_words.txt'
+                          ..dispatchEvent(
+                              html.Event.eventType('MouseEvent', 'click'));
+                      },
+                      child: const Icon(
+                        Icons.download,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
