@@ -84,6 +84,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       _tabIndex = 1;
       _wallet = Wallet.XummWallet;
     }
+    _tabController = TabController(
+        vsync: this, length: _tabs.length, initialIndex: _tabIndex);
 
     super.initState();
   }
@@ -348,62 +350,102 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               height: 50,
             ),
             const Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Selecting a wallet below allows access to '
-                'Dhali services',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Link a wallet to continue ',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Icon(
+                      Icons.warning,
+                      size: 24,
+                      color: Colors.red,
+                    )
+                  ],
+                )),
             const SizedBox(
               height: 50,
             ),
           ]),
         ),
-        SliverGrid(
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 500,
-            childAspectRatio: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-          ),
+        SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
               final wallet = Wallet.values[index];
 
-              Image image;
+              Widget image;
+              String text;
+              Widget spacer;
+              Key key;
+              double spacer_height = 10;
+              double button_height = 60;
+              double icon_height = 50;
+              double button_width = 350;
+
               if (wallet == Wallet.XummWallet) {
+                key = Key("xumm_wallet_tile");
                 image = Image.asset(
-                    key: const Key("xumm_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/xumm.png'
-                        : 'assets/images/xumm.png');
+                        : 'assets/images/xumm.png',
+                    height: icon_height);
+                text = " Link XUMM wallet";
+                spacer = SizedBox(height: spacer_height);
               } else if (wallet == Wallet.RawXRPWallet) {
+                key = Key("raw_xrp_wallet_tile");
                 image = Image.asset(
-                    key: const Key("raw_xrp_wallet_tile"),
-                    widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/xrp.png'
-                        : 'assets/images/xrp.png');
+                  widget.isImported
+                      ? 'packages/dhali_wallet/assets/images/xrp.png'
+                      : 'assets/images/xrp.png',
+                  height: icon_height,
+                );
+                text = " Create or link raw XRP wallet";
+                spacer = Column(children: [
+                  SizedBox(height: spacer_height),
+                  const Text(
+                    "or",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: spacer_height)
+                ]);
               } else if (wallet == Wallet.Fynbos) {
+                key = Key("fynbos_wallet_tile");
                 image = Image.asset(
-                    key: const Key("fynbos_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                        : 'assets/images/fynbos.png');
+                        : 'assets/images/fynbos.png',
+                    height: icon_height);
+                text = " Link Fynbos wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               } else {
+                key = Key("metamask_wallet_tile");
                 image = Image.asset(
-                    key: const Key("metamask_wallet_tile"),
                     widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/metamask.jpg'
-                        : 'assets/images/metamask.jpg');
+                        ? 'packages/dhali_wallet/assets/images/metamask.png'
+                        : 'assets/images/metamask.png',
+                    height: icon_height);
+                text = " Link Metamask wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               }
 
-              return GestureDetector(
-                  onTap: () {
+              return Column(children: [
+                ElevatedButton(
+                  key: key,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(widget.buttonsColor),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                              side: BorderSide()))),
+                  onPressed: () {
                     setState(() {
                       _wallet = wallet;
                       TabController? tabController =
@@ -413,12 +455,30 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                             .animateTo(1); // Switch to the second tab (index 1)
                       }
                     });
+                    // handle the button press
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    child: image,
-                  ));
-              ;
+                  child: SizedBox(
+                      width: button_width,
+                      height: button_height,
+                      child: OverflowBox(
+                          maxWidth: double.infinity,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              image,
+                              SizedBox(width: 10),
+                              Text(
+                                text,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                ),
+                              )
+                            ],
+                          ))),
+                ),
+                spacer
+              ]);
             },
             childCount: Wallet.values.length - 1,
           ),
