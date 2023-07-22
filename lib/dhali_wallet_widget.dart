@@ -161,6 +161,15 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                                         testMode: true);
                                     widget.setWallet(wallet);
                                     _publicKey = wallet.publicKey();
+                                    final dataUri =
+                                        'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                                    html.document.createElement('a')
+                                        as html.AnchorElement
+                                      ..href = dataUri
+                                      ..download =
+                                          'dhali_xrp_wallet_secret_words.txt'
+                                      ..dispatchEvent(html.Event.eventType(
+                                          'MouseEvent', 'click'));
                                     if (widget.onActivation != null) {
                                       widget.onActivation!();
                                     }
@@ -362,11 +371,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                         fontSize: 24,
                       ),
                     ),
-                    Icon(
-                      Icons.warning,
-                      size: 24,
-                      color: Colors.red,
-                    )
                   ],
                 )),
             const SizedBox(
