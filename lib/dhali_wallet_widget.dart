@@ -65,12 +65,24 @@ class ColoredTabBar extends Container implements PreferredSizeWidget {
 }
 
 // TODO: Metamask-style phrase creation and verification
-class _WalletHomeScreenState extends State<WalletHomeScreen> {
+class _WalletHomeScreenState extends State<WalletHomeScreen>
+    with SingleTickerProviderStateMixin {
   // TODO: pull the fields below from wallet
   String _publicKey = "";
   String? _mnemonicState;
   Wallet? _wallet;
   int _tabIndex = 0;
+  late TabController _tabController;
+  final List<Tab> _tabs = [
+    Tab(
+      icon: Icon(Icons.wallet),
+      text: "Available wallets",
+    ),
+    Tab(
+      icon: Icon(Icons.account_box_outlined),
+      text: "Active wallet",
+    ),
+  ];
 
   final _mnemonicFormKey = GlobalKey<FormState>();
 
@@ -92,31 +104,21 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-        length: 2,
-        initialIndex: _tabIndex,
-        child: Scaffold(
-            appBar: ColoredTabBar(
-                widget.appBarColor,
-                TabBar(
-                  labelColor: widget.appBarTextColor,
-                  tabs: [
-                    Tab(
-                      icon: Icon(Icons.wallet),
-                      text: "Available wallets",
-                    ),
-                    Tab(
-                      icon: Icon(Icons.account_box_outlined),
-                      text: "Active wallet",
-                    ),
-                  ],
-                )),
-            body: TabBarView(
-              children: [
-                AllWallets(),
-                getScreenView(_wallet),
-              ],
-            )));
+    return Scaffold(
+        appBar: ColoredTabBar(
+            widget.appBarColor,
+            TabBar(
+              controller: _tabController,
+              labelColor: widget.appBarTextColor,
+              tabs: _tabs,
+            )),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            AllWallets(),
+            getScreenView(_wallet),
+          ],
+        ));
   }
 
   Widget CreateRawXRPLWallet() {
@@ -358,7 +360,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                       'Link a wallet to continue ',
                       style: TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Icon(
@@ -448,10 +449,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                   onPressed: () {
                     setState(() {
                       _wallet = wallet;
-                      TabController? tabController =
-                          DefaultTabController.of(context);
-                      if (tabController != null) {
-                        tabController
+                      if (_tabController != null) {
+                        _tabController
                             .animateTo(1); // Switch to the second tab (index 1)
                       }
                     });
@@ -489,10 +488,53 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   Widget UnselectedWallet() {
     return Center(
-      child: Text(
-        "Please select a wallet from 'Available wallets'",
-        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'You must choose a wallet ',
+            style: TextStyle(
+              fontSize: 24,
+            ),
+          ),
+          Icon(
+            Icons.warning,
+            size: 24,
+            color: Colors.red,
+          )
+        ],
       ),
-    );
+      SizedBox(height: 50),
+      ElevatedButton(
+        style: ButtonStyle(
+            maximumSize: MaterialStateProperty.all<Size>(Size(350, 50)),
+            backgroundColor: MaterialStateProperty.all(widget.buttonsColor),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                    side: BorderSide()))),
+        onPressed: () {
+          setState(() {
+            if (_tabController != null) {
+              _tabController.animateTo(0);
+            }
+          });
+          // handle the button press
+        },
+        child: SizedBox(
+            width: 400,
+            height: 50,
+            child: Center(
+              child: Text(
+                "Choose a wallet",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+                // style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            )),
+      )
+    ]));
   }
 }
