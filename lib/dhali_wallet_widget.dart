@@ -65,12 +65,24 @@ class ColoredTabBar extends Container implements PreferredSizeWidget {
 }
 
 // TODO: Metamask-style phrase creation and verification
-class _WalletHomeScreenState extends State<WalletHomeScreen> {
+class _WalletHomeScreenState extends State<WalletHomeScreen>
+    with SingleTickerProviderStateMixin {
   // TODO: pull the fields below from wallet
   String _publicKey = "";
   String? _mnemonicState;
   Wallet? _wallet;
   int _tabIndex = 0;
+  late TabController _tabController;
+  final List<Tab> _tabs = [
+    Tab(
+      icon: Icon(Icons.wallet),
+      text: "Available wallets",
+    ),
+    Tab(
+      icon: Icon(Icons.account_box_outlined),
+      text: "Active wallet",
+    ),
+  ];
 
   final _mnemonicFormKey = GlobalKey<FormState>();
 
@@ -84,37 +96,29 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       _tabIndex = 1;
       _wallet = Wallet.XummWallet;
     }
+    _tabController = TabController(
+        vsync: this, length: _tabs.length, initialIndex: _tabIndex);
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-        length: 2,
-        initialIndex: _tabIndex,
-        child: Scaffold(
-            appBar: ColoredTabBar(
-                widget.appBarColor,
-                TabBar(
-                  labelColor: widget.appBarTextColor,
-                  tabs: [
-                    Tab(
-                      icon: Icon(Icons.wallet),
-                      text: "Available wallets",
-                    ),
-                    Tab(
-                      icon: Icon(Icons.account_box_outlined),
-                      text: "Active wallet",
-                    ),
-                  ],
-                )),
-            body: TabBarView(
-              children: [
-                AllWallets(),
-                getScreenView(_wallet),
-              ],
-            )));
+    return Scaffold(
+        appBar: ColoredTabBar(
+            widget.appBarColor,
+            TabBar(
+              controller: _tabController,
+              labelColor: widget.appBarTextColor,
+              tabs: _tabs,
+            )),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            AllWallets(),
+            getScreenView(_wallet),
+          ],
+        ));
   }
 
   Widget CreateRawXRPLWallet() {
@@ -157,6 +161,15 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                         testMode: true);
                                     widget.setWallet(wallet);
                                     _publicKey = wallet.publicKey();
+                                    final dataUri =
+                                        'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                                    html.document.createElement('a')
+                                        as html.AnchorElement
+                                      ..href = dataUri
+                                      ..download =
+                                          'dhali_xrp_wallet_secret_words.txt'
+                                      ..dispatchEvent(html.Event.eventType(
+                                          'MouseEvent', 'click'));
                                     if (widget.onActivation != null) {
                                       widget.onActivation!();
                                     }
@@ -348,77 +361,127 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               height: 50,
             ),
             const Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Selecting a wallet below allows access to '
-                'Dhali services',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Link a wallet to continue ',
+                      style: TextStyle(
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                )),
             const SizedBox(
               height: 50,
             ),
           ]),
         ),
-        SliverGrid(
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 500,
-            childAspectRatio: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-          ),
+        SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
               final wallet = Wallet.values[index];
 
-              Image image;
+              Widget image;
+              String text;
+              Widget spacer;
+              Key key;
+              double spacer_height = 10;
+              double button_height = 60;
+              double icon_height = 50;
+              double button_width = 350;
+
               if (wallet == Wallet.XummWallet) {
+                key = Key("xumm_wallet_tile");
                 image = Image.asset(
-                    key: const Key("xumm_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/xumm.png'
-                        : 'assets/images/xumm.png');
+                        : 'assets/images/xumm.png',
+                    height: icon_height);
+                text = " Link XUMM wallet";
+                spacer = SizedBox(height: spacer_height);
               } else if (wallet == Wallet.RawXRPWallet) {
+                key = Key("raw_xrp_wallet_tile");
                 image = Image.asset(
-                    key: const Key("raw_xrp_wallet_tile"),
-                    widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/xrp.png'
-                        : 'assets/images/xrp.png');
+                  widget.isImported
+                      ? 'packages/dhali_wallet/assets/images/xrp.png'
+                      : 'assets/images/xrp.png',
+                  height: icon_height,
+                );
+                text = " Create or link raw XRP wallet";
+                spacer = Column(children: [
+                  SizedBox(height: spacer_height),
+                  const Text(
+                    "or",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: spacer_height)
+                ]);
               } else if (wallet == Wallet.Fynbos) {
+                key = Key("fynbos_wallet_tile");
                 image = Image.asset(
-                    key: const Key("fynbos_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                        : 'assets/images/fynbos.png');
+                        : 'assets/images/fynbos.png',
+                    height: icon_height);
+                text = " Link Fynbos wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               } else {
+                key = Key("metamask_wallet_tile");
                 image = Image.asset(
-                    key: const Key("metamask_wallet_tile"),
                     widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/metamask.jpg'
-                        : 'assets/images/metamask.jpg');
+                        ? 'packages/dhali_wallet/assets/images/metamask.png'
+                        : 'assets/images/metamask.png',
+                    height: icon_height);
+                text = " Link Metamask wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               }
 
-              return GestureDetector(
-                  onTap: () {
+              return Column(children: [
+                ElevatedButton(
+                  key: key,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(widget.buttonsColor),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                              side: BorderSide()))),
+                  onPressed: () {
                     setState(() {
                       _wallet = wallet;
-                      TabController? tabController =
-                          DefaultTabController.of(context);
-                      if (tabController != null) {
-                        tabController
+                      if (_tabController != null) {
+                        _tabController
                             .animateTo(1); // Switch to the second tab (index 1)
                       }
                     });
+                    // handle the button press
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    child: image,
-                  ));
-              ;
+                  child: SizedBox(
+                      width: button_width,
+                      height: button_height,
+                      child: OverflowBox(
+                          maxWidth: double.infinity,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              image,
+                              SizedBox(width: 10),
+                              Text(
+                                text,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                ),
+                              )
+                            ],
+                          ))),
+                ),
+                spacer
+              ]);
             },
             childCount: Wallet.values.length - 1,
           ),
@@ -429,10 +492,53 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   Widget UnselectedWallet() {
     return Center(
-      child: Text(
-        "Please select a wallet from 'Available wallets'",
-        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'You must choose a wallet ',
+            style: TextStyle(
+              fontSize: 24,
+            ),
+          ),
+          Icon(
+            Icons.warning,
+            size: 24,
+            color: Colors.red,
+          )
+        ],
       ),
-    );
+      SizedBox(height: 50),
+      ElevatedButton(
+        style: ButtonStyle(
+            maximumSize: MaterialStateProperty.all<Size>(Size(350, 50)),
+            backgroundColor: MaterialStateProperty.all(widget.buttonsColor),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                    side: BorderSide()))),
+        onPressed: () {
+          setState(() {
+            if (_tabController != null) {
+              _tabController.animateTo(0);
+            }
+          });
+          // handle the button press
+        },
+        child: SizedBox(
+            width: 400,
+            height: 50,
+            child: Center(
+              child: Text(
+                "Choose a wallet",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+                // style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            )),
+      )
+    ]));
   }
 }
