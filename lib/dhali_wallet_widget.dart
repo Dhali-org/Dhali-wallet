@@ -179,7 +179,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 50.0, vertical: 25),
                                   child: Text(
-                                    'Generate new wallet',
+                                    'Generate new test wallet',
                                     style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.white,
@@ -280,7 +280,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 50.0, vertical: 25),
                                   child: Text(
-                                    'Retrieve your wallet',
+                                    'Retrieve test wallet',
                                     style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.white,
@@ -409,7 +409,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                       : 'assets/images/xrp.png',
                   height: icon_height,
                 );
-                text = " Create or link raw XRP wallet";
+                text = " Use free test wallet";
                 spacer = Column(children: [
                   SizedBox(height: spacer_height),
                   const Text(
