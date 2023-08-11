@@ -110,7 +110,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             TabBar(
               unselectedLabelColor: Colors.grey,
               indicatorWeight: 6.0,
-              indicatorColor: Color.fromARGB(255, 232, 141, 255),
               controller: _tabController,
               labelColor: widget.appBarTextColor,
               tabs: _tabs,
@@ -451,8 +450,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                           MaterialStateProperty.all(widget.buttonsColor),
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                              side: BorderSide()))),
+                              borderRadius: BorderRadius.circular(18.0)))),
                   onPressed: () {
                     setState(() {
                       _wallet = wallet;
