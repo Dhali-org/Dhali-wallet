@@ -110,7 +110,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             TabBar(
               unselectedLabelColor: Colors.grey,
               indicatorWeight: 6.0,
-              indicatorColor: Color.fromARGB(255, 232, 141, 255),
               controller: _tabController,
               labelColor: widget.appBarTextColor,
               tabs: _tabs,
