@@ -450,8 +450,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                           MaterialStateProperty.all(widget.buttonsColor),
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                              side: BorderSide()))),
+                              borderRadius: BorderRadius.circular(18.0)))),
                   onPressed: () {
                     setState(() {
                       _wallet = wallet;
