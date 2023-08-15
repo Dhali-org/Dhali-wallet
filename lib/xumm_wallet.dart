@@ -404,7 +404,7 @@ Future<dynamic> poll(String uuid,
     await Future.delayed(const Duration(seconds: 1));
     if (i % pollPeriodSeconds == 0) {
       final url = Uri.parse(
-          'https://kernml-xumm-3mmgxhct.uc.gateway.dev/xumm/payload/$uuid');
+          'https://dhali-prod-xumm-dauenf0n.uc.gateway.dev/xumm/payload/$uuid');
       var response = await http.get(
         url,
         headers: {
