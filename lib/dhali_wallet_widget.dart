@@ -119,6 +119,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
       if (widget.getWallet() == null) {
         SharedPreferences.getInstance().then((value) async {
           final walletString = value.getString('wallet');
+          if (walletString != null && widget.onActivation != null) {
+            widget.onActivation!();
+          }
           if (walletString == "XUMM") {
             String? address = value.getString('address');
             if (address != null) {
