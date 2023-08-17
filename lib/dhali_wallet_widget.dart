@@ -87,16 +87,17 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
 
   final _mnemonicFormKey = GlobalKey<FormState>();
 
-  setWalletAndRestore(DhaliWallet? wallet) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (wallet != null && wallet.runtimeType == XummWallet) {
-      await prefs.setString('address', wallet.address);
-      await prefs.setString('wallet', "XUMM");
-      _tabIndex = 1;
-      _wallet = Wallet.XummWallet;
-    }
-    setState(() {
-      widget.setWallet(wallet);
+  setWalletAndRestore(DhaliWallet? wallet) {
+    widget.setWallet(wallet);
+    _tabIndex = 1;
+    SharedPreferences.getInstance().then((pref) async {
+      if (wallet != null && wallet.runtimeType == XummWallet) {
+        await pref.setString('address', wallet.address).then((address) async {
+          await pref.setString('wallet', "XUMM").then((wallet) {
+            _wallet = Wallet.XummWallet;
+          });
+        });
+      }
     });
   }
 
@@ -114,10 +115,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         vsync: this, length: _tabs.length, initialIndex: _tabIndex);
 
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       // Check if wallet can be loaded from device
       if (widget.getWallet() == null) {
-        SharedPreferences.getInstance().then((value) async {
+        SharedPreferences.getInstance().then((value) {
           final walletString = value.getString('wallet');
           if (walletString != null && widget.onActivation != null) {
             widget.onActivation!();
@@ -128,8 +129,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
               final wallet = XummWallet(address,
                   getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
-              setWalletAndRestore(wallet)
-                  .then((value) => _tabController.animateTo(_tabIndex));
+              setWalletAndRestore(wallet);
+              _tabController.animateTo(1);
             }
           }
         });
@@ -140,19 +141,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
   @override
   Widget build(BuildContext context) {
     // Check if wallet can be loaded from device
-    if (widget.getWallet() == null) {
-      SharedPreferences.getInstance().then((value) {
-        final walletString = value.getString('wallet');
-        if (walletString == "XUMM") {
-          String? address = value.getString('address');
-          if (address != null) {
-            final wallet = XummWallet(address,
-                getFirestore: () => FirebaseFirestore.instance, testMode: true);
-            this.setWalletAndRestore(wallet);
-          }
-        }
-      });
-    }
+
     return Scaffold(
         appBar: ColoredTabBar(
             widget.appBarColor,
@@ -210,7 +199,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                                         getFirestore: () =>
                                             FirebaseFirestore.instance,
                                         testMode: true);
-                                    this.setWalletAndRestore(wallet);
+                                    setWalletAndRestore(wallet);
                                     _publicKey = wallet.publicKey();
                                     final dataUri =
                                         'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
@@ -312,20 +301,19 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                                   textStyle: const TextStyle(fontSize: 20),
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    if (_mnemonicState != null) {
-                                      // TODO: 'testMode' to 'false' for release
-                                      var wallet = XRPLWallet(_mnemonicState!,
-                                          getFirestore: () =>
-                                              FirebaseFirestore.instance,
-                                          testMode: true);
-                                      this.setWalletAndRestore(wallet);
-                                      _publicKey = wallet.publicKey();
-                                      if (widget.onActivation != null) {
-                                        widget.onActivation!();
-                                      }
+                                  if (_mnemonicState != null) {
+                                    // TODO: 'testMode' to 'false' for release
+                                    var wallet = XRPLWallet(_mnemonicState!,
+                                        getFirestore: () =>
+                                            FirebaseFirestore.instance,
+                                        testMode: true);
+                                    setWalletAndRestore(wallet);
+                                    _publicKey = wallet.publicKey();
+                                    if (widget.onActivation != null) {
+                                      widget.onActivation!();
                                     }
-                                  });
+                                  }
+                                  setState(() {});
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
@@ -366,7 +354,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           screen = XRPLWalletWidget(
             walletType: Wallet.RawXRPWallet,
             getWallet: widget.getWallet,
-            setWallet: this.setWalletAndRestore,
+            setWallet: setWalletAndRestore,
             onActivation: widget.onActivation,
           );
         }
@@ -375,7 +363,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         screen = XRPLWalletWidget(
           walletType: Wallet.XummWallet,
           getWallet: widget.getWallet,
-          setWallet: this.setWalletAndRestore,
+          setWallet: setWalletAndRestore,
           onActivation: widget.onActivation,
         );
 
