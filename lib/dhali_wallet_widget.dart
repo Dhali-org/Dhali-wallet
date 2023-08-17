@@ -87,7 +87,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
 
   final _mnemonicFormKey = GlobalKey<FormState>();
 
-  void setWalletAndRestore(DhaliWallet? wallet) async {
+  setWalletAndRestore(DhaliWallet? wallet) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (wallet != null && wallet.runtimeType == XummWallet) {
       await prefs.setString('address', wallet.address);
@@ -114,8 +114,23 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         vsync: this, length: _tabs.length, initialIndex: _tabIndex);
 
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tabController.animateTo(_tabIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Check if wallet can be loaded from device
+      if (widget.getWallet() == null) {
+        SharedPreferences.getInstance().then((value) async {
+          final walletString = value.getString('wallet');
+          if (walletString == "XUMM") {
+            String? address = value.getString('address');
+            if (address != null) {
+              final wallet = XummWallet(address,
+                  getFirestore: () => FirebaseFirestore.instance,
+                  testMode: true);
+              setWalletAndRestore(wallet)
+                  .then((value) => _tabController.animateTo(_tabIndex));
+            }
+          }
+        });
+      }
     });
   }
 
