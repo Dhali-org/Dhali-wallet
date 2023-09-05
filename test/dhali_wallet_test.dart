@@ -47,18 +47,15 @@ void main() {
 
       expect(find.text("Available wallets"), findsOneWidget);
       expect(find.text("Active wallet"), findsOneWidget);
-      expect(find.text("Please select a wallet from 'Available wallets'"),
-          findsNothing);
+      expect(find.text("You must choose a wallet "), findsNothing);
 
       await tester.tap(find.text("Active wallet"));
       await tester.pumpAndSettle();
-      expect(find.text("Please select a wallet from 'Available wallets'"),
-          findsOneWidget);
+      expect(find.text("You must choose a wallet "), findsOneWidget);
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
-      expect(find.text("Please select a wallet from 'Available wallets'"),
-          findsNothing);
+      expect(find.text("You must choose a wallet "), findsNothing);
     });
 
     testWidgets('Active raw XRPL wallet', (WidgetTester tester) async {
@@ -97,12 +94,14 @@ void main() {
 
       expect(find.text("Available wallets"), findsOneWidget);
       expect(find.text("Active wallet"), findsOneWidget);
-      expect(find.text("Please select a wallet from 'Available wallets'"),
-          findsNothing);
+      expect(find.text("Choose a wallet"), findsNothing);
 
-      expect(find.text('Balance: 1 XRP'), findsOneWidget);
-      expect(find.text('Classic address: a-random-address'), findsOneWidget);
-      expect(find.text('Memorable words: '), findsOneWidget);
+      expect(find.text('Status:'), findsOneWidget);
+      expect(find.text('Linked with XRPL '), findsOneWidget);
+      expect(find.text('Classic address:'), findsOneWidget);
+      expect(find.text("a-random-address"), findsOneWidget);
+      expect(find.text('Dhali balance:'), findsOneWidget);
+      expect(find.text('1 XRP '), findsOneWidget);
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();

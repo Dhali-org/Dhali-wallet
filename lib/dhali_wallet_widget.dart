@@ -7,9 +7,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
-import 'package:dhali_wallet/xumm_wallet_widget.dart';
+import 'package:dhali_wallet/xrpl_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum Wallet {
   RawXRPWallet,
@@ -65,14 +66,40 @@ class ColoredTabBar extends Container implements PreferredSizeWidget {
 }
 
 // TODO: Metamask-style phrase creation and verification
-class _WalletHomeScreenState extends State<WalletHomeScreen> {
+class _WalletHomeScreenState extends State<WalletHomeScreen>
+    with SingleTickerProviderStateMixin {
   // TODO: pull the fields below from wallet
   String _publicKey = "";
   String? _mnemonicState;
   Wallet? _wallet;
   int _tabIndex = 0;
+  late TabController _tabController;
+  final List<Tab> _tabs = [
+    Tab(
+      icon: Icon(Icons.wallet),
+      text: "Available wallets",
+    ),
+    Tab(
+      icon: Icon(Icons.account_box_outlined),
+      text: "Active wallet",
+    ),
+  ];
 
   final _mnemonicFormKey = GlobalKey<FormState>();
+
+  setWalletAndRestore(DhaliWallet? wallet) {
+    widget.setWallet(wallet);
+    _tabIndex = 1;
+    SharedPreferences.getInstance().then((pref) async {
+      if (wallet != null && wallet.runtimeType == XummWallet) {
+        await pref.setString('address', wallet.address).then((address) async {
+          await pref.setString('wallet', "XUMM").then((wallet) {
+            _wallet = Wallet.XummWallet;
+          });
+        });
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -84,37 +111,54 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       _tabIndex = 1;
       _wallet = Wallet.XummWallet;
     }
+    _tabController = TabController(
+        vsync: this, length: _tabs.length, initialIndex: _tabIndex);
 
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Check if wallet can be loaded from device
+      if (widget.getWallet() == null) {
+        SharedPreferences.getInstance().then((value) {
+          final walletString = value.getString('wallet');
+          if (walletString != null && widget.onActivation != null) {
+            widget.onActivation!();
+          }
+          if (walletString == "XUMM") {
+            String? address = value.getString('address');
+            if (address != null) {
+              final wallet = XummWallet(address,
+                  getFirestore: () => FirebaseFirestore.instance,
+                  testMode: true);
+              setWalletAndRestore(wallet);
+              _tabController.animateTo(1);
+            }
+          }
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-        length: 2,
-        initialIndex: _tabIndex,
-        child: Scaffold(
-            appBar: ColoredTabBar(
-                widget.appBarColor,
-                TabBar(
-                  labelColor: widget.appBarTextColor,
-                  tabs: [
-                    Tab(
-                      icon: Icon(Icons.wallet),
-                      text: "Available wallets",
-                    ),
-                    Tab(
-                      icon: Icon(Icons.account_box_outlined),
-                      text: "Active wallet",
-                    ),
-                  ],
-                )),
-            body: TabBarView(
-              children: [
-                AllWallets(),
-                getScreenView(_wallet),
-              ],
-            )));
+    // Check if wallet can be loaded from device
+
+    return Scaffold(
+        appBar: ColoredTabBar(
+            widget.appBarColor,
+            TabBar(
+              unselectedLabelColor: Colors.grey,
+              indicatorWeight: 12.0,
+              controller: _tabController,
+              labelColor: widget.appBarTextColor,
+              tabs: _tabs,
+            )),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            AllWallets(),
+            getScreenView(_wallet),
+          ],
+        ));
   }
 
   Widget CreateRawXRPLWallet() {
@@ -155,8 +199,17 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                         getFirestore: () =>
                                             FirebaseFirestore.instance,
                                         testMode: true);
-                                    widget.setWallet(wallet);
+                                    setWalletAndRestore(wallet);
                                     _publicKey = wallet.publicKey();
+                                    final dataUri =
+                                        'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                                    html.document.createElement('a')
+                                        as html.AnchorElement
+                                      ..href = dataUri
+                                      ..download =
+                                          'dhali_xrp_wallet_secret_words.txt'
+                                      ..dispatchEvent(html.Event.eventType(
+                                          'MouseEvent', 'click'));
                                     if (widget.onActivation != null) {
                                       widget.onActivation!();
                                     }
@@ -166,7 +219,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 50.0, vertical: 25),
                                   child: Text(
-                                    'Generate new wallet',
+                                    'Generate new test wallet',
                                     style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.white,
@@ -248,26 +301,25 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                                   textStyle: const TextStyle(fontSize: 20),
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    if (_mnemonicState != null) {
-                                      // TODO: 'testMode' to 'false' for release
-                                      var wallet = XRPLWallet(_mnemonicState!,
-                                          getFirestore: () =>
-                                              FirebaseFirestore.instance,
-                                          testMode: true);
-                                      widget.setWallet(wallet);
-                                      _publicKey = wallet.publicKey();
-                                      if (widget.onActivation != null) {
-                                        widget.onActivation!();
-                                      }
+                                  if (_mnemonicState != null) {
+                                    // TODO: 'testMode' to 'false' for release
+                                    var wallet = XRPLWallet(_mnemonicState!,
+                                        getFirestore: () =>
+                                            FirebaseFirestore.instance,
+                                        testMode: true);
+                                    setWalletAndRestore(wallet);
+                                    _publicKey = wallet.publicKey();
+                                    if (widget.onActivation != null) {
+                                      widget.onActivation!();
                                     }
-                                  });
+                                  }
+                                  setState(() {});
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 50.0, vertical: 25),
                                   child: Text(
-                                    'Retrieve your wallet',
+                                    'Retrieve test wallet',
                                     style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.white,
@@ -299,14 +351,19 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         if (widget.getWallet() is! XRPLWallet) {
           screen = CreateRawXRPLWallet();
         } else {
-          screen = RawXRPWallet(widget.getWallet()! as XRPLWallet,
-              textColor: widget.bodyTextColor);
+          screen = XRPLWalletWidget(
+            walletType: Wallet.RawXRPWallet,
+            getWallet: widget.getWallet,
+            setWallet: setWalletAndRestore,
+            onActivation: widget.onActivation,
+          );
         }
         break;
       case Wallet.XummWallet:
-        screen = XummWalletWidget(
+        screen = XRPLWalletWidget(
+          walletType: Wallet.XummWallet,
           getWallet: widget.getWallet,
-          setWallet: widget.setWallet,
+          setWallet: setWalletAndRestore,
           onActivation: widget.onActivation,
         );
 
@@ -343,77 +400,126 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               height: 50,
             ),
             const Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Selecting a wallet below allows access to '
-                'Dhali services',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Link a wallet to continue ',
+                      style: TextStyle(
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                )),
             const SizedBox(
               height: 50,
             ),
           ]),
         ),
-        SliverGrid(
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 500,
-            childAspectRatio: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-          ),
+        SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
               final wallet = Wallet.values[index];
 
-              Image image;
+              Widget image;
+              String text;
+              Widget spacer;
+              Key key;
+              double spacer_height = 10;
+              double button_height = 60;
+              double icon_height = 50;
+              double button_width = 350;
+
               if (wallet == Wallet.XummWallet) {
+                key = Key("xumm_wallet_tile");
                 image = Image.asset(
-                    key: const Key("xumm_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/xumm.png'
-                        : 'assets/images/xumm.png');
+                        : 'assets/images/xumm.png',
+                    height: icon_height);
+                text = " Link XUMM wallet";
+                spacer = SizedBox(height: spacer_height);
               } else if (wallet == Wallet.RawXRPWallet) {
+                key = Key("raw_xrp_wallet_tile");
                 image = Image.asset(
-                    key: const Key("raw_xrp_wallet_tile"),
-                    widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/xrp.png'
-                        : 'assets/images/xrp.png');
+                  widget.isImported
+                      ? 'packages/dhali_wallet/assets/images/xrp.png'
+                      : 'assets/images/xrp.png',
+                  height: icon_height,
+                );
+                text = " Use free test wallet";
+                spacer = Column(children: [
+                  SizedBox(height: spacer_height),
+                  const Text(
+                    "or",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: spacer_height)
+                ]);
               } else if (wallet == Wallet.Fynbos) {
+                key = Key("fynbos_wallet_tile");
                 image = Image.asset(
-                    key: const Key("fynbos_wallet_tile"),
                     widget.isImported
                         ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                        : 'assets/images/fynbos.png');
+                        : 'assets/images/fynbos.png',
+                    height: icon_height);
+                text = " Link Fynbos wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               } else {
+                key = Key("metamask_wallet_tile");
                 image = Image.asset(
-                    key: const Key("metamask_wallet_tile"),
                     widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/metamask.jpg'
-                        : 'assets/images/metamask.jpg');
+                        ? 'packages/dhali_wallet/assets/images/metamask.png'
+                        : 'assets/images/metamask.png',
+                    height: icon_height);
+                text = " Link Metamask wallet (coming soon)";
+                spacer = SizedBox(height: spacer_height);
               }
 
-              return GestureDetector(
-                  onTap: () {
+              return Column(children: [
+                ElevatedButton(
+                  key: key,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(widget.buttonsColor),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0)))),
+                  onPressed: () {
                     setState(() {
                       _wallet = wallet;
-                      TabController? tabController =
-                          DefaultTabController.of(context);
-                      if (tabController != null) {
-                        tabController
+                      if (_tabController != null) {
+                        _tabController
                             .animateTo(1); // Switch to the second tab (index 1)
                       }
                     });
+                    // handle the button press
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    child: image,
-                  ));
-              ;
+                  child: SizedBox(
+                      width: button_width,
+                      height: button_height,
+                      child: OverflowBox(
+                          maxWidth: double.infinity,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              image,
+                              SizedBox(width: 10),
+                              Text(
+                                text,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                ),
+                              )
+                            ],
+                          ))),
+                ),
+                spacer
+              ]);
             },
             childCount: Wallet.values.length - 1,
           ),
@@ -424,82 +530,53 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   Widget UnselectedWallet() {
     return Center(
-      child: Text(
-        "Please select a wallet from 'Available wallets'",
-        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'You must choose a wallet ',
+            style: TextStyle(
+              fontSize: 24,
+            ),
+          ),
+          Icon(
+            Icons.warning,
+            size: 24,
+            color: Colors.red,
+          )
+        ],
       ),
-    );
-  }
-
-  Widget RawXRPWallet(XRPLWallet wallet,
-      {bool hideMnemonic = true, Color? textColor = Colors.black}) {
-    const double fontSize = 20;
-    return Center(
-        key: const Key("raw_xrp_wallet"),
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            //const Center(
-            //  child: const Padding(
-            //padding: EdgeInsets.symmetric(horizontal: 200.0,
-            //                        vertical: 100.0),
-            //    child: BalanceChart(),
-            //  )
-            //),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0),
-                child: ValueListenableBuilder<String?>(
-                    valueListenable: wallet.balance,
-                    builder:
-                        (BuildContext context, String? balance, Widget? _) {
-                      if (balance == null) {
-                        return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Loading... ",
-                                  style: TextStyle(fontSize: fontSize)),
-                              CircularProgressIndicator()
-                            ]);
-                      }
-                      balance = (double.parse(balance) / 1000000).toString();
-                      return SelectableText('Balance: $balance XRP',
-                          style: TextStyle(fontSize: 25, color: textColor));
-                    }),
+      SizedBox(height: 50),
+      ElevatedButton(
+        style: ButtonStyle(
+            maximumSize: MaterialStateProperty.all<Size>(Size(350, 50)),
+            backgroundColor: MaterialStateProperty.all(widget.buttonsColor),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                    side: BorderSide()))),
+        onPressed: () {
+          setState(() {
+            if (_tabController != null) {
+              _tabController.animateTo(0);
+            }
+          });
+          // handle the button press
+        },
+        child: SizedBox(
+            width: 400,
+            height: 50,
+            child: Center(
+              child: Text(
+                "Choose a wallet",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+                // style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
-            ),
-            Center(
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 25.0),
-                  child: SelectableText(
-                    'Classic address: ${wallet.address}',
-                    style: TextStyle(fontSize: fontSize, color: textColor),
-                  )),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SelectableText('Memorable words: ',
-                    style: TextStyle(fontSize: fontSize, color: textColor)),
-                SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    final dataUri =
-                        'data:text/plain;charset=utf-8,${wallet.mnemonic!}';
-                    html.document.createElement('a') as html.AnchorElement
-                      ..href = dataUri
-                      ..download = 'dhali_xrp_wallet_secret_words.txt'
-                      ..dispatchEvent(
-                          html.Event.eventType('MouseEvent', 'click'));
-                  },
-                  child: const Icon(
-                    Icons.download,
-                    color: Colors.grey,
-                  ),
-                )
-              ],
-            ),
-          ],
-        ));
+            )),
+      )
+    ]));
   }
 }
