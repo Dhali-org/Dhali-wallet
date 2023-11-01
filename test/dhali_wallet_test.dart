@@ -105,15 +105,9 @@ void main() {
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key("fynbos_wallet_tile")));
+      await tester.tap(find.byKey(const Key("gem_wallet_tile")));
       await tester.pumpAndSettle();
-      expect(find.text('Fynbos wallet coming soon!'), findsOneWidget);
-      await tester.tap(find.text("Available wallets"));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key("metamask_wallet_tile")));
-      await tester.pumpAndSettle();
-      expect(find.text('MetaMask wallet coming soon!'), findsOneWidget);
+      expect(find.text('GemWallet coming soon'), findsOneWidget);
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
     });
@@ -169,15 +163,9 @@ void main() {
 
     await tester.tap(find.text("Available wallets"));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key("fynbos_wallet_tile")));
+    await tester.tap(find.byKey(const Key("gem_wallet_tile")));
     await tester.pumpAndSettle();
-    expect(find.text('Fynbos wallet coming soon!'), findsOneWidget);
-    await tester.tap(find.text("Available wallets"));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key("metamask_wallet_tile")));
-    await tester.pumpAndSettle();
-    expect(find.text('MetaMask wallet coming soon!'), findsOneWidget);
+    expect(find.text('GemWallet coming soon'), findsOneWidget);
     await tester.tap(find.text("Available wallets"));
     await tester.pumpAndSettle();
   });

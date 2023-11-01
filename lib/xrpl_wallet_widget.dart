@@ -43,15 +43,22 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
       return widget.getWallet() is XRPLWallet ||
               widget.getWallet() is XummWallet
           ? viewAccount()
-          : signin();
+          : signinXumm();
     } else if (widget.walletType == Wallet.XummWallet) {
-      return widget.getWallet() is XummWallet ? viewAccount() : signin();
+      return widget.getWallet() is XummWallet ? viewAccount() : signinXumm();
+    } else if (widget.walletType == Wallet.GemWallet) {
+      return const Center(
+        child: Text('GemWallet coming soon',
+            style: TextStyle(
+              fontSize: 20,
+            )),
+      );
     } else {
       throw Error();
     }
   }
 
-  Widget signin() {
+  Widget signinXumm() {
     Future<http.Response> response = requestSignIn();
 
     return FutureBuilder<http.Response>(
