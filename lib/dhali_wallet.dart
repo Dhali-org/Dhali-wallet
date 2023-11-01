@@ -1,5 +1,6 @@
 import 'package:dhali_wallet/wallet_types.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class ImplementationErrorException implements Exception {
   String message;
@@ -33,22 +34,25 @@ abstract class DhaliWallet {
   ValueListenable<String?> get balance;
 
   Future<dynamic> getAvailableNFTs();
-  Future<bool> acceptOffer(String offerIndex);
+  Future<bool> acceptOffer(String offerIndex, {required BuildContext? context});
   Future<List<NFTOffer>> getNFTOffers(
     String nfTokenId,
   );
 
   Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount);
+      PaymentChannelDescriptor descriptor, String amount,
+      {required BuildContext? context});
 
   Future<List<PaymentChannelDescriptor>> getOpenPaymentChannels(
       {String? destination_address});
 
   Future<PaymentChannelDescriptor> openPaymentChannel(
-      String destinationAddress, String amount);
+      String destinationAddress, String amount,
+      {required BuildContext? context});
 
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required PaymentChannelDescriptor channelDescriptor});
+      required PaymentChannelDescriptor channelDescriptor,
+      required BuildContext? context});
 }
