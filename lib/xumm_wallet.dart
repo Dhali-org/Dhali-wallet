@@ -22,6 +22,83 @@ class SignatureClaimPair {
   SignatureClaimPair(this.signature, this.amount);
 }
 
+Future<void> _showModalFromURL(
+    String title, BuildContext? context, Map<String, dynamic> data) async {
+  final pngUrl = data["refs"]["qr_png"];
+  final response = await http.get(Uri.parse(pngUrl));
+
+  if (context != null && response.statusCode == 200) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(20.0)), // Set your desired border radius here
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black),
+          ),
+          contentPadding: EdgeInsets.all(20),
+          actionsAlignment: MainAxisAlignment.center,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Open XUMM wallet on your mobile \nphone and scan this QR code or"
+                " \nclick \"Open XUMM\".",
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
+              Image.memory(
+                response.bodyBytes,
+                width: 300,
+                height: 300,
+              )
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(
+                  bottom: 30.0), // Adjust this value to your preference
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          8.0), // Set your desired border radius value here
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0), // Adjust this value as needed
+                  child: Text(
+                    'Open XUMM',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                ),
+                onPressed: () {
+                  final Uri _url = Uri.parse(data["next"]["always"]);
+                  launchUrl(_url, mode: LaunchMode.externalApplication);
+                },
+              ),
+            ),
+          ],
+          backgroundColor: Colors.white,
+        );
+      },
+    );
+  } else {
+    print('Failed to load the image from the URL');
+  }
+}
+
+void displayQRCodeFrom(
+    String title, BuildContext? context, Map<String, dynamic> data) {
+  _showModalFromURL(title, context, data);
+}
+
 class XummWallet extends DhaliWallet {
   final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
@@ -107,7 +184,8 @@ class XummWallet extends DhaliWallet {
 
   @override
   Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount) async {
+      PaymentChannelDescriptor descriptor, String amount,
+      {required BuildContext? context}) async {
     var logger = Logger();
     try {
       http.Response response = await XummRequest({
@@ -119,8 +197,7 @@ class XummWallet extends DhaliWallet {
         return false;
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to fund your balance", context, data);
       bool result =
           await poll(data["uuid"], onSuccess: (http.Response response) {
         logger.d("fundingPaymentChannel.onSuccess", response.body);
@@ -144,7 +221,8 @@ class XummWallet extends DhaliWallet {
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required PaymentChannelDescriptor channelDescriptor}) async {
+      required PaymentChannelDescriptor channelDescriptor,
+      required BuildContext? context}) async {
     if (_sigClaimPair == null ||
         _sigClaimPair!.amount < int.parse(authAmount)) {
       http.Response response = await XummRequest({
@@ -156,8 +234,7 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to make payment", context, data);
       return await poll(data["uuid"], onSuccess: (http.Response response) {
         Map<String, dynamic> body = jsonDecode(response.body);
         _sigClaimPair =
@@ -222,15 +299,15 @@ class XummWallet extends DhaliWallet {
   }
 
   @override
-  Future<bool> acceptOffer(String offerIndex) async {
+  Future<bool> acceptOffer(String offerIndex,
+      {required BuildContext? context}) async {
     http.Response response = await XummRequest({
       "TransactionType": "NFTokenAcceptOffer",
       "NFTokenSellOffer": offerIndex,
       "Account": address
     }, null);
     var data = jsonDecode(response.body) as Map<String, dynamic>;
-    final Uri _url = Uri.parse(data["next"]["always"]);
-    launchUrl(_url, mode: LaunchMode.externalApplication);
+    displayQRCodeFrom("Scan to accept NFT", context, data);
     await poll(data["uuid"],
         onSuccess: (http.Response response) => {},
         onError: (http.Response response) => {},
@@ -291,7 +368,8 @@ class XummWallet extends DhaliWallet {
 
   @override
   Future<PaymentChannelDescriptor> openPaymentChannel(
-      String destinationAddress, String amount) async {
+      String destinationAddress, String amount,
+      {required BuildContext? context}) async {
     // This method is implemented such that it can never open more than one
     // payment channel to the same destination address
     var paymentChannel =
@@ -307,8 +385,7 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to open a payment channel", context, data);
       await poll(data["uuid"],
           onSuccess: (http.Response response) => {},
           onError: (http.Response response) => {},

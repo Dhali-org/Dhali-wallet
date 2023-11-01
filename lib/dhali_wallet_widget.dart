@@ -12,13 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum Wallet {
-  RawXRPWallet,
-  XummWallet,
-  Fynbos,
-  MetaMask,
-  UnselectedWallet,
-}
+enum Wallet { RawXRPWallet, XummWallet, GemWallet, UnselectedWallet }
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen(
@@ -368,20 +362,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         );
 
         break;
-      case Wallet.Fynbos:
-        screen = Center(
-          child: Text(
-            "Fynbos wallet coming soon!",
-            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-          ),
-        );
-        break;
-      case Wallet.MetaMask:
-        screen = Center(
-          child: Text(
-            "MetaMask wallet coming soon!",
-            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-          ),
+      case Wallet.GemWallet:
+        screen = XRPLWalletWidget(
+          walletType: Wallet.GemWallet,
+          getWallet: widget.getWallet,
+          setWallet: setWalletAndRestore,
+          onActivation: widget.onActivation,
         );
         break;
       default:
@@ -429,7 +415,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
               double spacer_height = 10;
               double button_height = 60;
               double icon_height = 50;
-              double button_width = 350;
+              double button_width = 250;
 
               if (wallet == Wallet.XummWallet) {
                 key = Key("xumm_wallet_tile");
@@ -459,23 +445,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                   ),
                   SizedBox(height: spacer_height)
                 ]);
-              } else if (wallet == Wallet.Fynbos) {
-                key = Key("fynbos_wallet_tile");
-                image = Image.asset(
-                    widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/fynbos.png'
-                        : 'assets/images/fynbos.png',
-                    height: icon_height);
-                text = " Link Fynbos wallet (coming soon)";
-                spacer = SizedBox(height: spacer_height);
               } else {
-                key = Key("metamask_wallet_tile");
+                key = Key("gem_wallet_tile");
                 image = Image.asset(
                     widget.isImported
-                        ? 'packages/dhali_wallet/assets/images/metamask.png'
-                        : 'assets/images/metamask.png',
+                        ? 'packages/dhali_wallet/assets/images/gem.png'
+                        : 'assets/images/gem.png',
                     height: icon_height);
-                text = " Link Metamask wallet (coming soon)";
+                text = " Link Gemwallet";
                 spacer = SizedBox(height: spacer_height);
               }
 

@@ -80,6 +80,7 @@ class XRPLWallet extends DhaliWallet {
 
   Future<void> updateBalance() async {
     getOpenPaymentChannels(
+            context: null,
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
@@ -129,7 +130,8 @@ class XRPLWallet extends DhaliWallet {
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required PaymentChannelDescriptor channelDescriptor}) async {
+      required PaymentChannelDescriptor channelDescriptor,
+      required BuildContext? context}) async {
     return {
       "account": address,
       "destination_account": destinationAddress,
@@ -179,7 +181,8 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
-  Future<bool> acceptOffer(String offerIndex) async {
+  Future<bool> acceptOffer(String offerIndex,
+      {required BuildContext? context}) async {
     Client client = Client(_netUrl);
 
     var logger = Logger();
@@ -272,7 +275,7 @@ class XRPLWallet extends DhaliWallet {
 
   @override
   Future<List<PaymentChannelDescriptor>> getOpenPaymentChannels(
-      {String? destination_address}) async {
+      {String? destination_address, required BuildContext? context}) async {
     Client client = Client(_netUrl);
 
     var logger = Logger();
@@ -318,7 +321,8 @@ class XRPLWallet extends DhaliWallet {
 
   @override
   Future<PaymentChannelDescriptor> openPaymentChannel(
-      String destinationAddress, String amount) async {
+      String destinationAddress, String amount,
+      {required BuildContext? context}) async {
     Client client = Client(_netUrl);
     var logger = Logger();
 
@@ -428,7 +432,8 @@ Channel was validated: $channelIsValidated
 
   @override
   Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount) async {
+      PaymentChannelDescriptor descriptor, String amount,
+      {required BuildContext? context}) async {
     _channelDescriptor = descriptor;
     Client client = Client(_netUrl);
     var logger = Logger();

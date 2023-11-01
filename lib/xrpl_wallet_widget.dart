@@ -43,15 +43,22 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
       return widget.getWallet() is XRPLWallet ||
               widget.getWallet() is XummWallet
           ? viewAccount()
-          : signin();
+          : signinXumm();
     } else if (widget.walletType == Wallet.XummWallet) {
-      return widget.getWallet() is XummWallet ? viewAccount() : signin();
+      return widget.getWallet() is XummWallet ? viewAccount() : signinXumm();
+    } else if (widget.walletType == Wallet.GemWallet) {
+      return const Center(
+        child: Text('GemWallet coming soon',
+            style: TextStyle(
+              fontSize: 20,
+            )),
+      );
     } else {
       throw Error();
     }
   }
 
-  Widget signin() {
+  Widget signinXumm() {
     Future<http.Response> response = requestSignIn();
 
     return FutureBuilder<http.Response>(
@@ -65,11 +72,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
           return Text('Error: ${snapshot.error}');
         } else {
           var data = jsonDecode(snapshot.data!.body) as Map<String, dynamic>;
-          final Uri _url = Uri.parse(data["next"]["always"]);
-          launchUrl(_url, mode: LaunchMode.externalApplication);
+          displayQRCodeFrom("Scan to connect", context, data);
           poll(
             data["uuid"],
             onSuccess: (http.Response response) {
+              Navigator.pop(context);
               XummWallet wallet = XummWallet(
                   jsonDecode(response.body)["response"]["account"],
                   getFirestore: () => FirebaseFirestore.instance,
@@ -84,21 +91,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
             onError: (http.Response response) => {},
             onTimeout: () => {},
           );
-          return const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Opening popup...\n\nPlease ensure this isn't blocked; then scan the QR code  ",
-                  style: TextStyle(
-                    fontSize: 25,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                CircularProgressIndicator()
-              ]);
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
@@ -277,14 +270,21 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                             if (number != null) {
                               bool fundingSuccess = false;
                               if (mounted) {
-                                showDialog(
+                                showDialog<bool>(
                                   context: context,
                                   barrierDismissible:
                                       false, // Disallow dismiss by touching outside
                                   builder: (BuildContext context) {
-                                    return const AlertDialog(
+                                    return AlertDialog(
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, false);
+                                            },
+                                            child: Text("Cancel"))
+                                      ],
                                       title: Text('Funding channel'),
-                                      content: Row(
+                                      content: const Row(
                                         children: [
                                           CircularProgressIndicator(),
                                           SizedBox(width: 10),
@@ -306,6 +306,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                   // TODO : depend on Dhali public address
                                   channelDescriptors = [
                                     await widget.getWallet()!.openPaymentChannel(
+                                        context: context,
                                         "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
                                         _numberController.text)
                                   ];
@@ -313,9 +314,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
 
                                 fundingSuccess = await widget
                                     .getWallet()!
-                                    .fundPaymentChannel(channelDescriptors[0],
+                                    .fundPaymentChannel(
+                                        context: context,
+                                        channelDescriptors[0],
                                         "${double.parse(_numberController.text) * 1000000}");
-                                if (Navigator.canPop(context)) {
+                                while (Navigator.canPop(context)) {
                                   Navigator.of(context).pop();
                                 }
                               }
