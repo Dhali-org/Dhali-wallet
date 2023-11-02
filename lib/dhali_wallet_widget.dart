@@ -121,6 +121,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             String? address = value.getString('address');
             if (address != null) {
               final wallet = XummWallet(address,
+                  buttonColor: widget.buttonsColor ?? Colors.blue,
                   getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
               setWalletAndRestore(wallet);
@@ -346,6 +347,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           screen = CreateRawXRPLWallet();
         } else {
           screen = XRPLWalletWidget(
+            buttonsColor: widget.buttonsColor ?? Colors.blue,
             walletType: Wallet.RawXRPWallet,
             getWallet: widget.getWallet,
             setWallet: setWalletAndRestore,
@@ -355,6 +357,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         break;
       case Wallet.XummWallet:
         screen = XRPLWalletWidget(
+          buttonsColor: widget.buttonsColor ?? Colors.blue,
           walletType: Wallet.XummWallet,
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
@@ -364,6 +367,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         break;
       case Wallet.GemWallet:
         screen = XRPLWalletWidget(
+          buttonsColor: widget.buttonsColor ?? Colors.blue,
           walletType: Wallet.GemWallet,
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
@@ -452,7 +456,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                         ? 'packages/dhali_wallet/assets/images/gem.png'
                         : 'assets/images/gem.png',
                     height: icon_height);
-                text = " Link Gemwallet";
+                text = " Link GemWallet";
                 spacer = SizedBox(height: spacer_height);
               }
 

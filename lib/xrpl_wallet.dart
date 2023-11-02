@@ -80,7 +80,6 @@ class XRPLWallet extends DhaliWallet {
 
   Future<void> updateBalance() async {
     getOpenPaymentChannels(
-            context: null,
             destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
@@ -275,7 +274,7 @@ class XRPLWallet extends DhaliWallet {
 
   @override
   Future<List<PaymentChannelDescriptor>> getOpenPaymentChannels(
-      {String? destination_address, required BuildContext? context}) async {
+      {String? destination_address}) async {
     Client client = Client(_netUrl);
 
     var logger = Logger();
