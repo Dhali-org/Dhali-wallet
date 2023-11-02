@@ -456,7 +456,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                         ? 'packages/dhali_wallet/assets/images/gem.png'
                         : 'assets/images/gem.png',
                     height: icon_height);
-                text = " Link Gemwallet";
+                text = " Link GemWallet";
                 spacer = SizedBox(height: spacer_height);
               }
 
