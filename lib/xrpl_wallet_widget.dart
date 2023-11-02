@@ -3,6 +3,7 @@ import 'dart:html';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet_widget.dart';
 import 'package:dhali_wallet/wallet_types.dart';
+import 'package:dhali_wallet/widgets/buttons.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:dhali_wallet/xumm_wallet.dart';
 import 'package:flutter/services.dart';
@@ -20,9 +21,11 @@ class XRPLWalletWidget extends StatefulWidget {
       required this.walletType,
       required this.getWallet,
       required this.setWallet,
-      required this.onActivation});
+      required this.onActivation,
+      required this.buttonsColor});
 
   final void Function()? onActivation;
+  final Color buttonsColor;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet?) setWallet;
   final Wallet walletType;
@@ -72,13 +75,15 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
           return Text('Error: ${snapshot.error}');
         } else {
           var data = jsonDecode(snapshot.data!.body) as Map<String, dynamic>;
-          displayQRCodeFrom("Scan to connect", context, data);
+          displayQRCodeFrom("Scan to connect", context, data,
+              buttonColor: widget.buttonsColor);
           poll(
             data["uuid"],
             onSuccess: (http.Response response) {
               Navigator.pop(context);
               XummWallet wallet = XummWallet(
                   jsonDecode(response.body)["response"]["account"],
+                  buttonColor: widget.buttonsColor ?? Colors.blue,
                   getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
               setState(() {
@@ -98,7 +103,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   }
 
   Widget viewAccount() {
-    const double fontSize = 20;
+    const double fontSize = 16;
     return Center(
       child: Table(
         defaultColumnWidth: IntrinsicColumnWidth(),
@@ -110,8 +115,8 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 child: Container(
                   margin: EdgeInsets.all(8),
                   child: Text('Status:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          fontSize: fontSize, fontWeight: FontWeight.bold)),
                 ),
               ),
               TableCell(
@@ -121,7 +126,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                   children: [
                     Text(
                       'Linked with ${widget.getWallet() is XRPLWallet ? "XRPL" : "XUMM"} ',
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: fontSize),
                     ),
                     Icon(
                       Icons.check,
@@ -139,15 +144,34 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 child: Container(
                   margin: EdgeInsets.all(8),
                   child: Text('Classic address:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          fontSize: fontSize, fontWeight: FontWeight.bold)),
                 ),
               ),
               TableCell(
                 child: Container(
                   margin: EdgeInsets.all(8),
-                  child: SelectableText(widget.getWallet()!.address,
-                      style: TextStyle(fontSize: 18)),
+                  child: getTextButton("Show",
+                      textSize: fontSize,
+                      buttonsColor: widget.buttonsColor, onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text('Classic address'),
+                            content: SelectableText(widget.getWallet()!.address,
+                                style: TextStyle(fontSize: fontSize)),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("OK"),
+                              ),
+                            ],
+                          );
+                        });
+                  }),
                 ),
               ),
             ],
@@ -158,8 +182,8 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 child: Container(
                   margin: EdgeInsets.all(8),
                   child: Text('Dhali balance:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          fontSize: fontSize, fontWeight: FontWeight.bold)),
                 ),
               ),
               TableCell(
@@ -181,7 +205,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                 ]);
                           }
                           return Text('${double.parse(balance) / 1000000} XRP ',
-                              style: TextStyle(fontSize: 18));
+                              style: TextStyle(fontSize: fontSize));
                         }),
                     IconButton(
                         icon: Icon(Icons.info),
@@ -234,7 +258,10 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                       padding: EdgeInsets.all(8),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: ElevatedButton(
+                        child: getTextButton(
+                          'Fund Dhali balance',
+                          buttonsColor: widget.buttonsColor,
+                          textSize: fontSize,
                           onPressed: () async {
                             bool? fundPaymentChannel = await showDialog<bool>(
                                 context: context,
@@ -373,7 +400,6 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                               print('Invalid input');
                             }
                           },
-                          child: Text('Fund Dhali balance'),
                         ),
                       ))),
             ],

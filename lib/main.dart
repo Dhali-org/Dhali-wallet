@@ -49,6 +49,7 @@ class _MainAppState extends State<MainApp> {
         ),
         floatingActionButton: _activated
             ? FloatingActionButton.extended(
+                backgroundColor: Color.fromARGB(255, 255, 0, 212),
                 label: Text("Press me to make me disappear!"),
                 onPressed: _removeFloatingActionButton,
               )

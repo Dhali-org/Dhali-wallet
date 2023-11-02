@@ -99,9 +99,16 @@ void main() {
       expect(find.text('Status:'), findsOneWidget);
       expect(find.text('Linked with XRPL '), findsOneWidget);
       expect(find.text('Classic address:'), findsOneWidget);
-      expect(find.text("a-random-address"), findsOneWidget);
+      expect(find.text("Show"), findsOneWidget);
       expect(find.text('Dhali balance:'), findsOneWidget);
       expect(find.text('1 XRP '), findsOneWidget);
+
+      await tester.tap(find.text("Show"));
+      await tester.pumpAndSettle();
+      expect(find.text("Classic address"), findsOneWidget);
+      expect(find.text("a-random-address"), findsOneWidget);
+      await tester.tap(find.text("OK"));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
@@ -157,7 +164,7 @@ void main() {
     expect(find.text('Status:'), findsOneWidget);
     expect(find.text('Linked with XUMM '), findsOneWidget);
     expect(find.text('Classic address:'), findsOneWidget);
-    expect(find.text("a-random-address"), findsOneWidget);
+    expect(find.text("Show"), findsOneWidget);
     expect(find.text('Dhali balance:'), findsOneWidget);
     expect(find.text('2 XRP '), findsOneWidget);
 

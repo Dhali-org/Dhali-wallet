@@ -3,16 +3,17 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i8;
+import 'dart:ui' as _i5;
 
 import 'package:cloud_firestore/cloud_firestore.dart' as _i2;
 import 'package:dhali_wallet/wallet_types.dart' as _i4;
-import 'package:dhali_wallet/xrpl_wallet.dart' as _i6;
-import 'package:dhali_wallet/xumm_wallet.dart' as _i9;
+import 'package:dhali_wallet/xrpl_wallet.dart' as _i7;
+import 'package:dhali_wallet/xumm_wallet.dart' as _i10;
 import 'package:flutter/material.dart' as _i3;
-import 'package:http/http.dart' as _i5;
+import 'package:http/http.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:xrpl/xrpl.dart' as _i8;
+import 'package:xrpl/xrpl.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -58,8 +59,18 @@ class _FakePaymentChannelDescriptor_2 extends _i1.SmartFake
         );
 }
 
-class _FakeResponse_3 extends _i1.SmartFake implements _i5.Response {
-  _FakeResponse_3(
+class _FakeColor_3 extends _i1.SmartFake implements _i5.Color {
+  _FakeColor_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeResponse_4 extends _i1.SmartFake implements _i6.Response {
+  _FakeResponse_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -71,7 +82,7 @@ class _FakeResponse_3 extends _i1.SmartFake implements _i5.Response {
 /// A class which mocks [XRPLWallet].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
+class MockXRPLWallet extends _i1.Mock implements _i7.XRPLWallet {
   MockXRPLWallet() {
     _i1.throwOnMissingStub(this);
   }
@@ -106,14 +117,14 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
         ),
       ) as _i3.ValueNotifier<String?>);
   @override
-  _i7.Future<void> updateBalance() => (super.noSuchMethod(
+  _i8.Future<void> updateBalance() => (super.noSuchMethod(
         Invocation.method(
           #updateBalance,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
   String publicKey() => (super.noSuchMethod(
         Invocation.method(
@@ -123,7 +134,7 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
         returnValue: '',
       ) as String);
   @override
-  _i7.Future<Map<String, String>> preparePayment({
+  _i8.Future<Map<String, String>> preparePayment({
     required String? destinationAddress,
     required String? authAmount,
     required _i4.PaymentChannelDescriptor? channelDescriptor,
@@ -140,8 +151,8 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
             #context: context,
           },
         ),
-        returnValue: _i7.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i7.Future<Map<String, String>>);
+        returnValue: _i8.Future<Map<String, String>>.value(<String, String>{}),
+      ) as _i8.Future<Map<String, String>>);
   @override
   String sendDrops(
     String? amount,
@@ -158,9 +169,9 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
         returnValue: '',
       ) as String);
   @override
-  _i7.Future<dynamic> submitRequest(
-    _i8.BaseRequest? request,
-    _i8.Client? client,
+  _i8.Future<dynamic> submitRequest(
+    _i9.BaseRequest? request,
+    _i9.Client? client,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -170,18 +181,18 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
             client,
           ],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i8.Future<dynamic>.value(),
+      ) as _i8.Future<dynamic>);
   @override
-  _i7.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
+  _i8.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
         Invocation.method(
           #getAvailableNFTs,
           [],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i8.Future<dynamic>.value(),
+      ) as _i8.Future<dynamic>);
   @override
-  _i7.Future<bool> acceptOffer(
+  _i8.Future<bool> acceptOffer(
     String? offerIndex, {
     required _i3.BuildContext? context,
   }) =>
@@ -191,19 +202,19 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
           [offerIndex],
           {#context: context},
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
   @override
-  _i7.Future<List<_i4.NFTOffer>> getNFTOffers(String? nfTokenId) =>
+  _i8.Future<List<_i4.NFTOffer>> getNFTOffers(String? nfTokenId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getNFTOffers,
           [nfTokenId],
         ),
-        returnValue: _i7.Future<List<_i4.NFTOffer>>.value(<_i4.NFTOffer>[]),
-      ) as _i7.Future<List<_i4.NFTOffer>>);
+        returnValue: _i8.Future<List<_i4.NFTOffer>>.value(<_i4.NFTOffer>[]),
+      ) as _i8.Future<List<_i4.NFTOffer>>);
   @override
-  _i7.Future<List<_i4.PaymentChannelDescriptor>> getOpenPaymentChannels({
+  _i8.Future<List<_i4.PaymentChannelDescriptor>> getOpenPaymentChannels({
     String? destination_address,
     required _i3.BuildContext? context,
   }) =>
@@ -216,11 +227,11 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
             #context: context,
           },
         ),
-        returnValue: _i7.Future<List<_i4.PaymentChannelDescriptor>>.value(
+        returnValue: _i8.Future<List<_i4.PaymentChannelDescriptor>>.value(
             <_i4.PaymentChannelDescriptor>[]),
-      ) as _i7.Future<List<_i4.PaymentChannelDescriptor>>);
+      ) as _i8.Future<List<_i4.PaymentChannelDescriptor>>);
   @override
-  _i7.Future<_i4.PaymentChannelDescriptor> openPaymentChannel(
+  _i8.Future<_i4.PaymentChannelDescriptor> openPaymentChannel(
     String? destinationAddress,
     String? amount, {
     required _i3.BuildContext? context,
@@ -234,7 +245,7 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
           ],
           {#context: context},
         ),
-        returnValue: _i7.Future<_i4.PaymentChannelDescriptor>.value(
+        returnValue: _i8.Future<_i4.PaymentChannelDescriptor>.value(
             _FakePaymentChannelDescriptor_2(
           this,
           Invocation.method(
@@ -246,9 +257,9 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
             {#context: context},
           ),
         )),
-      ) as _i7.Future<_i4.PaymentChannelDescriptor>);
+      ) as _i8.Future<_i4.PaymentChannelDescriptor>);
   @override
-  _i7.Future<bool> fundPaymentChannel(
+  _i8.Future<bool> fundPaymentChannel(
     _i4.PaymentChannelDescriptor? descriptor,
     String? amount, {
     required _i3.BuildContext? context,
@@ -262,14 +273,14 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
           ],
           {#context: context},
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
 }
 
 /// A class which mocks [XummWallet].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
+class MockXummWallet extends _i1.Mock implements _i10.XummWallet {
   MockXummWallet() {
     _i1.throwOnMissingStub(this);
   }
@@ -282,6 +293,14 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
           Invocation.getter(#getFirestore),
         ),
       ) as _i2.FirebaseFirestore Function());
+  @override
+  _i5.Color get buttonColor => (super.noSuchMethod(
+        Invocation.getter(#buttonColor),
+        returnValue: _FakeColor_3(
+          this,
+          Invocation.getter(#buttonColor),
+        ),
+      ) as _i5.Color);
   @override
   String get address => (super.noSuchMethod(
         Invocation.getter(#address),
@@ -304,16 +323,16 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
         returnValue: '',
       ) as String);
   @override
-  _i7.Future<void> updateBalance() => (super.noSuchMethod(
+  _i8.Future<void> updateBalance() => (super.noSuchMethod(
         Invocation.method(
           #updateBalance,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<bool> fundPaymentChannel(
+  _i8.Future<bool> fundPaymentChannel(
     _i4.PaymentChannelDescriptor? descriptor,
     String? amount, {
     required _i3.BuildContext? context,
@@ -327,10 +346,10 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
           ],
           {#context: context},
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
   @override
-  _i7.Future<Map<String, String>> preparePayment({
+  _i8.Future<Map<String, String>> preparePayment({
     required String? destinationAddress,
     required String? authAmount,
     required _i4.PaymentChannelDescriptor? channelDescriptor,
@@ -347,12 +366,12 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
             #context: context,
           },
         ),
-        returnValue: _i7.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i7.Future<Map<String, String>>);
+        returnValue: _i8.Future<Map<String, String>>.value(<String, String>{}),
+      ) as _i8.Future<Map<String, String>>);
   @override
-  _i7.Future<dynamic> submitRequest(
-    _i8.BaseRequest? request,
-    _i8.Client? client,
+  _i8.Future<dynamic> submitRequest(
+    _i9.BaseRequest? request,
+    _i9.Client? client,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -362,18 +381,18 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
             client,
           ],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i8.Future<dynamic>.value(),
+      ) as _i8.Future<dynamic>);
   @override
-  _i7.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
+  _i8.Future<dynamic> getAvailableNFTs() => (super.noSuchMethod(
         Invocation.method(
           #getAvailableNFTs,
           [],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i8.Future<dynamic>.value(),
+      ) as _i8.Future<dynamic>);
   @override
-  _i7.Future<bool> acceptOffer(
+  _i8.Future<bool> acceptOffer(
     String? offerIndex, {
     required _i3.BuildContext? context,
   }) =>
@@ -383,19 +402,19 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
           [offerIndex],
           {#context: context},
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
   @override
-  _i7.Future<List<_i4.NFTOffer>> getNFTOffers(String? nfTokenId) =>
+  _i8.Future<List<_i4.NFTOffer>> getNFTOffers(String? nfTokenId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getNFTOffers,
           [nfTokenId],
         ),
-        returnValue: _i7.Future<List<_i4.NFTOffer>>.value(<_i4.NFTOffer>[]),
-      ) as _i7.Future<List<_i4.NFTOffer>>);
+        returnValue: _i8.Future<List<_i4.NFTOffer>>.value(<_i4.NFTOffer>[]),
+      ) as _i8.Future<List<_i4.NFTOffer>>);
   @override
-  _i7.Future<_i4.PaymentChannelDescriptor> openPaymentChannel(
+  _i8.Future<_i4.PaymentChannelDescriptor> openPaymentChannel(
     String? destinationAddress,
     String? amount, {
     required _i3.BuildContext? context,
@@ -409,7 +428,7 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
           ],
           {#context: context},
         ),
-        returnValue: _i7.Future<_i4.PaymentChannelDescriptor>.value(
+        returnValue: _i8.Future<_i4.PaymentChannelDescriptor>.value(
             _FakePaymentChannelDescriptor_2(
           this,
           Invocation.method(
@@ -421,9 +440,9 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
             {#context: context},
           ),
         )),
-      ) as _i7.Future<_i4.PaymentChannelDescriptor>);
+      ) as _i8.Future<_i4.PaymentChannelDescriptor>);
   @override
-  _i7.Future<List<_i4.PaymentChannelDescriptor>> getOpenPaymentChannels(
+  _i8.Future<List<_i4.PaymentChannelDescriptor>> getOpenPaymentChannels(
           {String? destination_address}) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -431,11 +450,11 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
           [],
           {#destination_address: destination_address},
         ),
-        returnValue: _i7.Future<List<_i4.PaymentChannelDescriptor>>.value(
+        returnValue: _i8.Future<List<_i4.PaymentChannelDescriptor>>.value(
             <_i4.PaymentChannelDescriptor>[]),
-      ) as _i7.Future<List<_i4.PaymentChannelDescriptor>>);
+      ) as _i8.Future<List<_i4.PaymentChannelDescriptor>>);
   @override
-  _i7.Future<_i5.Response> XummRequest(
+  _i8.Future<_i6.Response> XummRequest(
     Map<String, dynamic>? tx_json,
     Map<String, dynamic>? options,
   ) =>
@@ -447,7 +466,7 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
             options,
           ],
         ),
-        returnValue: _i7.Future<_i5.Response>.value(_FakeResponse_3(
+        returnValue: _i8.Future<_i6.Response>.value(_FakeResponse_4(
           this,
           Invocation.method(
             #XummRequest,
@@ -457,5 +476,5 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
             ],
           ),
         )),
-      ) as _i7.Future<_i5.Response>);
+      ) as _i8.Future<_i6.Response>);
 }
