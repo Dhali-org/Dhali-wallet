@@ -28,8 +28,7 @@ class XRPLWallet extends DhaliWallet {
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
-  // TODO: change once prod-ready:
-  static String mainnetUrl = 'NOT IMPLEMENTED YET';
+  static String mainnetUrl = 'wss://xrplcluster.com/';
 
   PaymentChannelDescriptor?
       _channelDescriptor; // Must only be set in updateBalance()
