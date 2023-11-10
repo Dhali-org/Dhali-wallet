@@ -92,7 +92,7 @@ class XummWallet extends DhaliWallet {
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
   // TODO: change once prod-ready:
-  static String mainnetUrl = 'NOT IMPLEMENTED YET';
+  static String mainnetUrl = 'wss://xrplcluster.com/';
 
   String _netUrl = uninitialisedUrl;
 
