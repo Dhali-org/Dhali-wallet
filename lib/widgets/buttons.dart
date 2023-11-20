@@ -4,11 +4,9 @@ Widget getTextButton(
   String text, {
   required Function() onPressed,
   double? textSize,
-  required Color buttonsColor,
 }) {
   return ElevatedButton(
     style: ButtonStyle(
-      backgroundColor: MaterialStateProperty.all<Color>(buttonsColor),
       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
