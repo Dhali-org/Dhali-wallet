@@ -10,6 +10,7 @@ import 'package:dhali_wallet/xumm_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum Wallet { RawXRPWallet, XummWallet, GemWallet, UnselectedWallet }
@@ -143,6 +144,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             TabBar(
               unselectedLabelColor: Colors.grey,
               indicatorWeight: 12.0,
+              indicatorColor: getAppropriateColor(widget.appBarColor),
               controller: _tabController,
               labelColor: widget.appBarTextColor,
               tabs: _tabs,
@@ -389,16 +391,15 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             const SizedBox(
               height: 50,
             ),
-            const Padding(
+            Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Link a wallet to continue ',
-                      style: TextStyle(
-                        fontSize: 24,
-                      ),
+                      style:
+                          TextStyle(fontSize: 24, color: widget.bodyTextColor),
                     ),
                   ],
                 )),
@@ -493,6 +494,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                               Text(
                                 text,
                                 style: TextStyle(
+                                  color:
+                                      getAppropriateColor(widget.buttonsColor),
                                   fontSize: 18,
                                 ),
                               )
@@ -509,6 +512,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
     );
   }
 
+  Color getAppropriateColor(Color? color) {
+    return color != null && color.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
+  }
+
   Widget UnselectedWallet() {
     return Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -518,6 +527,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           Text(
             'You must choose a wallet ',
             style: TextStyle(
+              color: widget.bodyTextColor,
               fontSize: 24,
             ),
           ),
@@ -552,6 +562,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
               child: Text(
                 "Choose a wallet",
                 style: TextStyle(
+                  color: getAppropriateColor(widget.buttonsColor),
                   fontSize: 24,
                 ),
                 // style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
