@@ -10,6 +10,7 @@ import 'package:dhali_wallet/xumm_wallet.dart';
 import 'package:dhali_wallet/xrpl_wallet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum Wallet { RawXRPWallet, XummWallet, GemWallet, UnselectedWallet }
@@ -20,19 +21,9 @@ class WalletHomeScreen extends StatefulWidget {
       required this.title,
       required this.getWallet,
       required this.setWallet,
-      this.bodyColor,
-      this.bodyTextColor,
-      this.appBarTextColor,
-      this.appBarColor,
-      this.buttonsColor,
       this.onActivation,
       this.isImported = true});
 
-  final Color? bodyColor;
-  final Color? bodyTextColor;
-  final Color? buttonsColor;
-  final Color? appBarTextColor;
-  final Color? appBarColor;
   final bool isImported;
   final String title;
   final DhaliWallet? Function() getWallet;
@@ -41,22 +32,6 @@ class WalletHomeScreen extends StatefulWidget {
 
   @override
   State<WalletHomeScreen> createState() => _WalletHomeScreenState();
-}
-
-class ColoredTabBar extends Container implements PreferredSizeWidget {
-  ColoredTabBar(this.color, this.tabBar);
-
-  final Color? color;
-  final TabBar tabBar;
-
-  @override
-  Size get preferredSize => tabBar.preferredSize;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        color: color,
-        child: tabBar,
-      );
 }
 
 // TODO: Metamask-style phrase creation and verification
@@ -121,7 +96,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             String? address = value.getString('address');
             if (address != null) {
               final wallet = XummWallet(address,
-                  buttonColor: widget.buttonsColor ?? Colors.blue,
                   getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
               setWalletAndRestore(wallet);
@@ -138,15 +112,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
     // Check if wallet can be loaded from device
 
     return Scaffold(
-        appBar: ColoredTabBar(
-            widget.appBarColor,
-            TabBar(
-              unselectedLabelColor: Colors.grey,
-              indicatorWeight: 12.0,
-              controller: _tabController,
-              labelColor: widget.appBarTextColor,
-              tabs: _tabs,
-            )),
+        appBar: TabBar(
+          indicatorWeight: 12.0,
+          controller: _tabController,
+          tabs: _tabs,
+        ),
         body: TabBarView(
           controller: _tabController,
           children: [
@@ -172,73 +142,43 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 0, vertical: 25),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Stack(
-                            children: <Widget>[
-                              Positioned.fill(
-                                child: Container(
-                                  color: widget.buttonsColor,
-                                ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _mnemonicState = bip39.generateMnemonic();
+                              var wallet = XRPLWallet(_mnemonicState!,
+                                  getFirestore: () =>
+                                      FirebaseFirestore.instance,
+                                  testMode: true);
+                              setWalletAndRestore(wallet);
+                              _publicKey = wallet.publicKey();
+                              final dataUri =
+                                  'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                              html.document.createElement('a')
+                                  as html.AnchorElement
+                                ..href = dataUri
+                                ..download = 'dhali_xrp_wallet_secret_words.txt'
+                                ..dispatchEvent(html.Event.eventType(
+                                    'MouseEvent', 'click'));
+                              if (widget.onActivation != null) {
+                                widget.onActivation!();
+                              }
+                            });
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 50.0, vertical: 25),
+                            child: Text(
+                              'Generate new test wallet',
+                              style: TextStyle(
+                                fontSize: 20,
                               ),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.all(.0),
-                                  textStyle: const TextStyle(fontSize: 20),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _mnemonicState = bip39.generateMnemonic();
-                                    var wallet = XRPLWallet(_mnemonicState!,
-                                        getFirestore: () =>
-                                            FirebaseFirestore.instance,
-                                        testMode: true);
-                                    setWalletAndRestore(wallet);
-                                    _publicKey = wallet.publicKey();
-                                    final dataUri =
-                                        'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
-                                    html.document.createElement('a')
-                                        as html.AnchorElement
-                                      ..href = dataUri
-                                      ..download =
-                                          'dhali_xrp_wallet_secret_words.txt'
-                                      ..dispatchEvent(html.Event.eventType(
-                                          'MouseEvent', 'click'));
-                                    if (widget.onActivation != null) {
-                                      widget.onActivation!();
-                                    }
-                                  });
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 50.0, vertical: 25),
-                                  child: Text(
-                                    'Generate new test wallet',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '\n\nor\n\n',
-                            style: TextStyle(
-                                color: widget.bodyTextColor, fontSize: 25),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const Text("or", style: TextStyle(fontSize: 25)),
                     TextFormField(
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         decoration: const InputDecoration(
@@ -280,49 +220,31 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 0, vertical: 25),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Stack(
-                            children: <Widget>[
-                              Positioned.fill(
-                                child: Container(
-                                  color: widget.buttonsColor,
-                                ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_mnemonicState != null) {
+                              // TODO: 'testMode' to 'false' for release
+                              var wallet = XRPLWallet(_mnemonicState!,
+                                  getFirestore: () =>
+                                      FirebaseFirestore.instance,
+                                  testMode: true);
+                              setWalletAndRestore(wallet);
+                              _publicKey = wallet.publicKey();
+                              if (widget.onActivation != null) {
+                                widget.onActivation!();
+                              }
+                            }
+                            setState(() {});
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 50.0, vertical: 25),
+                            child: Text(
+                              'Retrieve test wallet',
+                              style: TextStyle(
+                                fontSize: 20,
                               ),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.all(.0),
-                                  textStyle: const TextStyle(fontSize: 20),
-                                ),
-                                onPressed: () {
-                                  if (_mnemonicState != null) {
-                                    // TODO: 'testMode' to 'false' for release
-                                    var wallet = XRPLWallet(_mnemonicState!,
-                                        getFirestore: () =>
-                                            FirebaseFirestore.instance,
-                                        testMode: true);
-                                    setWalletAndRestore(wallet);
-                                    _publicKey = wallet.publicKey();
-                                    if (widget.onActivation != null) {
-                                      widget.onActivation!();
-                                    }
-                                  }
-                                  setState(() {});
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 50.0, vertical: 25),
-                                  child: Text(
-                                    'Retrieve test wallet',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -347,7 +269,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           screen = CreateRawXRPLWallet();
         } else {
           screen = XRPLWalletWidget(
-            buttonsColor: widget.buttonsColor ?? Colors.blue,
             walletType: Wallet.RawXRPWallet,
             getWallet: widget.getWallet,
             setWallet: setWalletAndRestore,
@@ -357,7 +278,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         break;
       case Wallet.XummWallet:
         screen = XRPLWalletWidget(
-          buttonsColor: widget.buttonsColor ?? Colors.blue,
           walletType: Wallet.XummWallet,
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
@@ -367,7 +287,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         break;
       case Wallet.GemWallet:
         screen = XRPLWalletWidget(
-          buttonsColor: widget.buttonsColor ?? Colors.blue,
           walletType: Wallet.GemWallet,
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
@@ -389,16 +308,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             const SizedBox(
               height: 50,
             ),
-            const Padding(
+            Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Link a wallet to continue ',
-                      style: TextStyle(
-                        fontSize: 24,
-                      ),
+                      style: TextStyle(fontSize: 24),
                     ),
                   ],
                 )),
@@ -463,12 +380,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
               return Column(children: [
                 ElevatedButton(
                   key: key,
-                  style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(widget.buttonsColor),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0)))),
                   onPressed: () {
                     setState(() {
                       _wallet = wallet;
@@ -530,13 +441,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
       ),
       SizedBox(height: 50),
       ElevatedButton(
-        style: ButtonStyle(
-            maximumSize: MaterialStateProperty.all<Size>(Size(350, 50)),
-            backgroundColor: MaterialStateProperty.all(widget.buttonsColor),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                    side: BorderSide()))),
         onPressed: () {
           setState(() {
             if (_tabController != null) {

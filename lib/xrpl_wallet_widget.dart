@@ -21,11 +21,9 @@ class XRPLWalletWidget extends StatefulWidget {
       required this.walletType,
       required this.getWallet,
       required this.setWallet,
-      required this.onActivation,
-      required this.buttonsColor});
+      required this.onActivation});
 
   final void Function()? onActivation;
-  final Color buttonsColor;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet?) setWallet;
   final Wallet walletType;
@@ -75,15 +73,13 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
           return Text('Error: ${snapshot.error}');
         } else {
           var data = jsonDecode(snapshot.data!.body) as Map<String, dynamic>;
-          displayQRCodeFrom("Scan to connect", context, data,
-              buttonColor: widget.buttonsColor);
+          displayQRCodeFrom("Scan to connect", context, data);
           poll(
             data["uuid"],
             onSuccess: (http.Response response) {
               Navigator.pop(context);
               XummWallet wallet = XummWallet(
                   jsonDecode(response.body)["response"]["account"],
-                  buttonColor: widget.buttonsColor ?? Colors.blue,
                   getFirestore: () => FirebaseFirestore.instance,
                   testMode: true);
               setState(() {
@@ -151,9 +147,8 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
               TableCell(
                 child: Container(
                   margin: EdgeInsets.all(8),
-                  child: getTextButton("Show",
-                      textSize: fontSize,
-                      buttonsColor: widget.buttonsColor, onPressed: () {
+                  child:
+                      getTextButton("Show", textSize: fontSize, onPressed: () {
                     showDialog(
                         context: context,
                         builder: (context) {
@@ -260,7 +255,6 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                         alignment: Alignment.centerLeft,
                         child: getTextButton(
                           'Fund Dhali balance',
-                          buttonsColor: widget.buttonsColor,
                           textSize: fontSize,
                           onPressed: () async {
                             bool? fundPaymentChannel = await showDialog<bool>(
