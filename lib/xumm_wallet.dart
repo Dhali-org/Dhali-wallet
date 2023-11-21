@@ -24,8 +24,7 @@ class SignatureClaimPair {
 }
 
 Future<void> _showModalFromURL(
-    String title, BuildContext? context, Map<String, dynamic> data,
-    {required Color buttonColor}) async {
+    String title, BuildContext? context, Map<String, dynamic> data) async {
   final pngUrl = data["refs"]["qr_png"];
   final response = await http.get(Uri.parse(pngUrl));
 
@@ -40,8 +39,7 @@ Future<void> _showModalFromURL(
           ),
           title: Text(
             title,
-            style: TextStyle(
-                fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           contentPadding: EdgeInsets.all(20),
           actionsAlignment: MainAxisAlignment.center,
@@ -51,7 +49,7 @@ Future<void> _showModalFromURL(
               Text(
                 "Open XUMM wallet on your mobile \nphone and scan this QR code or"
                 " \nclick \"Open XUMM\".",
-                style: TextStyle(fontSize: 16, color: Colors.black),
+                style: TextStyle(fontSize: 16),
               ),
               Image.memory(
                 response.bodyBytes,
@@ -64,14 +62,12 @@ Future<void> _showModalFromURL(
             Padding(
               padding: EdgeInsets.only(
                   bottom: 30.0), // Adjust this value to your preference
-              child: getTextButton('Open XUMM', buttonsColor: buttonColor,
-                  onPressed: () {
+              child: getTextButton('Open XUMM', onPressed: () {
                 final Uri _url = Uri.parse(data["next"]["always"]);
                 launchUrl(_url, mode: LaunchMode.externalApplication);
               }),
             ),
           ],
-          backgroundColor: Colors.white,
         );
       },
     );
@@ -81,9 +77,11 @@ Future<void> _showModalFromURL(
 }
 
 void displayQRCodeFrom(
-    String title, BuildContext? context, Map<String, dynamic> data,
-    {required Color buttonColor}) {
-  _showModalFromURL(title, context, data, buttonColor: buttonColor);
+  String title,
+  BuildContext? context,
+  Map<String, dynamic> data,
+) {
+  _showModalFromURL(title, context, data);
 }
 
 class XummWallet extends DhaliWallet {
@@ -98,8 +96,6 @@ class XummWallet extends DhaliWallet {
 
   String _address;
 
-  final Color buttonColor;
-
   SignatureClaimPair? _sigClaimPair;
 
   PaymentChannelDescriptor?
@@ -109,9 +105,7 @@ class XummWallet extends DhaliWallet {
   ValueNotifier<String?> _balance = ValueNotifier(null);
 
   XummWallet(String address,
-      {required this.getFirestore,
-      bool testMode = false,
-      required this.buttonColor})
+      {required this.getFirestore, bool testMode = false})
       : _address = address {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     Client client = Client(_netUrl);
@@ -188,8 +182,7 @@ class XummWallet extends DhaliWallet {
         return false;
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to fund your balance", context, data,
-          buttonColor: buttonColor);
+      displayQRCodeFrom("Scan to fund your balance", context, data);
       bool result =
           await poll(data["uuid"], onSuccess: (http.Response response) {
         logger.d("fundingPaymentChannel.onSuccess", response.body);
@@ -226,8 +219,7 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to make payment", context, data,
-          buttonColor: buttonColor);
+      displayQRCodeFrom("Scan to make payment", context, data);
       return await poll(data["uuid"], onSuccess: (http.Response response) {
         Map<String, dynamic> body = jsonDecode(response.body);
         _sigClaimPair =
@@ -300,8 +292,7 @@ class XummWallet extends DhaliWallet {
       "Account": address
     }, null);
     var data = jsonDecode(response.body) as Map<String, dynamic>;
-    displayQRCodeFrom("Scan to accept NFT", context, data,
-        buttonColor: buttonColor);
+    displayQRCodeFrom("Scan to accept NFT", context, data);
     await poll(data["uuid"],
         onSuccess: (http.Response response) => {},
         onError: (http.Response response) => {},
@@ -379,8 +370,7 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to open a payment channel", context, data,
-          buttonColor: buttonColor);
+      displayQRCodeFrom("Scan to open a payment channel", context, data);
       await poll(data["uuid"],
           onSuccess: (http.Response response) => {},
           onError: (http.Response response) => {},

@@ -36,8 +36,6 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         body: WalletHomeScreen(
           isImported: false,
-          bodyTextColor: Color.fromARGB(255, 255, 255, 255),
-          buttonsColor: Color.fromARGB(255, 255, 0, 212),
           title: "wallet",
           getWallet: () {
             return _wallet;

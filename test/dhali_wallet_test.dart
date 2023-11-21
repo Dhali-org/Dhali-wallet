@@ -34,7 +34,6 @@ void main() {
           platform: TargetPlatform.iOS,
         ),
         home: WalletHomeScreen(
-          bodyTextColor: Color(0xFF0000FF),
           title: "wallet",
           getWallet: () {
             return null;
@@ -79,7 +78,6 @@ void main() {
           platform: TargetPlatform.iOS,
         ),
         home: WalletHomeScreen(
-          bodyTextColor: Color(0xFF0000FF),
           title: "wallet",
           getWallet: () {
             return mockWallet;
@@ -144,7 +142,6 @@ void main() {
         platform: TargetPlatform.iOS,
       ),
       home: WalletHomeScreen(
-        bodyTextColor: Color(0xFF0000FF),
         title: "wallet",
         getWallet: () {
           return mockWallet;
