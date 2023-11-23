@@ -185,6 +185,9 @@ class XummWallet extends DhaliWallet {
       displayQRCodeFrom("Scan to fund your balance", context, data);
       bool result =
           await poll(data["uuid"], onSuccess: (http.Response response) {
+        if (context != null) {
+          Navigator.pop(context);
+        }
         logger.d("fundingPaymentChannel.onSuccess", response.body);
         updateBalance();
         return true;
@@ -221,6 +224,9 @@ class XummWallet extends DhaliWallet {
       var data = jsonDecode(response.body) as Map<String, dynamic>;
       displayQRCodeFrom("Scan to make payment", context, data);
       return await poll(data["uuid"], onSuccess: (http.Response response) {
+        if (context != null) {
+          Navigator.pop(context);
+        }
         Map<String, dynamic> body = jsonDecode(response.body);
         _sigClaimPair =
             SignatureClaimPair(body["response"]["hex"], int.parse(authAmount));
@@ -294,7 +300,9 @@ class XummWallet extends DhaliWallet {
     var data = jsonDecode(response.body) as Map<String, dynamic>;
     displayQRCodeFrom("Scan to accept NFT", context, data);
     await poll(data["uuid"],
-        onSuccess: (http.Response response) => {},
+        onSuccess: (http.Response response) => {
+              if (context != null) {Navigator.pop(context)}
+            },
         onError: (http.Response response) => {},
         onTimeout: () => {});
 
@@ -372,7 +380,9 @@ class XummWallet extends DhaliWallet {
       var data = jsonDecode(response.body) as Map<String, dynamic>;
       displayQRCodeFrom("Scan to open a payment channel", context, data);
       await poll(data["uuid"],
-          onSuccess: (http.Response response) => {},
+          onSuccess: (http.Response response) => {
+                if (context != null) {Navigator.pop(context)}
+              },
           onError: (http.Response response) => {},
           onTimeout: () => {});
       paymentChannel =
