@@ -256,150 +256,144 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                         child: getTextButton(
                           'Fund Dhali balance',
                           textSize: fontSize,
-                          onPressed: _numberController.text.isEmpty
-                              ? null
-                              : () async {
-                                  bool? fundPaymentChannel = await showDialog<
-                                          bool>(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: Text('Are you sure?'),
-                                          content: Text(
-                                              'You are about to fund your Dhali wallet!\n\n'
-                                              'You will be able to retrieve unspent funds later.'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context, true);
-                                              },
-                                              child: const Text("Yes"),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context, false);
-                                              },
-                                              child: const Text("No"),
-                                            ),
-                                          ],
-                                        );
-                                      });
-                                  if (fundPaymentChannel != null &&
-                                      !fundPaymentChannel) {
-                                    return;
-                                  }
-
-                                  double? number =
-                                      double.tryParse(_numberController.text);
-                                  if (number != null) {
-                                    bool fundingSuccess = false;
-                                    if (mounted) {
-                                      showDialog<bool>(
-                                        context: context,
-                                        barrierDismissible:
-                                            false, // Disallow dismiss by touching outside
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            actions: [
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(
-                                                        context, false);
-                                                  },
-                                                  child: Text("Cancel"))
-                                            ],
-                                            title: Text('Funding channel'),
-                                            content: const Row(
-                                              children: [
-                                                CircularProgressIndicator(),
-                                                SizedBox(width: 10),
-                                                Text("Please wait..."),
-                                              ],
-                                            ),
-                                          );
+                          onPressed: () async {
+                            bool? fundPaymentChannel = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('Are you sure?'),
+                                    content: Text(
+                                        'You are about to fund your Dhali wallet!\n\n'
+                                        'You will be able to retrieve unspent funds later.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context, true);
                                         },
+                                        child: const Text("Yes"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context, false);
+                                        },
+                                        child: const Text("No"),
+                                      ),
+                                    ],
+                                  );
+                                });
+                            if (fundPaymentChannel != null &&
+                                !fundPaymentChannel) {
+                              return;
+                            }
+
+                            double? number =
+                                double.tryParse(_numberController.text);
+                            if (number != null) {
+                              bool fundingSuccess = false;
+                              if (mounted) {
+                                showDialog<bool>(
+                                  context: context,
+                                  barrierDismissible:
+                                      false, // Disallow dismiss by touching outside
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, false);
+                                            },
+                                            child: Text("Cancel"))
+                                      ],
+                                      title: Text('Funding channel'),
+                                      content: const Row(
+                                        children: [
+                                          CircularProgressIndicator(),
+                                          SizedBox(width: 10),
+                                          Text("Please wait..."),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                                number *= 1000000; // Convert to drops
+                                // Valid number, proceed with submission
+                                List<PaymentChannelDescriptor>
+                                    channelDescriptors = await widget
+                                        .getWallet()!
+                                        .getOpenPaymentChannels(
+                                            destination_address:
+                                                "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
+                                if (channelDescriptors.isEmpty) {
+                                  // TODO : depend on Dhali public address
+                                  channelDescriptors = [
+                                    await widget.getWallet()!.openPaymentChannel(
+                                        context: context,
+                                        "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
+                                        _numberController.text)
+                                  ];
+                                }
+
+                                fundingSuccess = await widget
+                                    .getWallet()!
+                                    .fundPaymentChannel(
+                                        context: context,
+                                        channelDescriptors[0],
+                                        "${double.parse(_numberController.text) * 1000000}");
+                                while (Navigator.canPop(context)) {
+                                  Navigator.of(context).pop();
+                                }
+                              }
+
+                              print("fundingSuccess: " +
+                                  fundingSuccess.toString());
+                              // mounted required to avoid warning
+                              // "Don't use 'BuildContext's across async gaps."
+                              if (mounted && !fundingSuccess) {
+                                await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text('Warning'),
+                                        content: Text(
+                                            'Your funding request failed! '
+                                            'Please ensure your balance was '
+                                            'sufficient to fund this request.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text("OK"),
+                                          ),
+                                        ],
                                       );
-                                      number *= 1000000; // Convert to drops
-                                      // Valid number, proceed with submission
-                                      List<PaymentChannelDescriptor>
-                                          channelDescriptors = await widget
-                                              .getWallet()!
-                                              .getOpenPaymentChannels(
-                                                  destination_address:
-                                                      "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
-                                      if (channelDescriptors.isEmpty) {
-                                        // TODO : depend on Dhali public address
-                                        channelDescriptors = [
-                                          await widget
-                                              .getWallet()!
-                                              .openPaymentChannel(
-                                                  context: context,
-                                                  "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
-                                                  _numberController.text)
-                                        ];
-                                      }
-
-                                      fundingSuccess = await widget
-                                          .getWallet()!
-                                          .fundPaymentChannel(
-                                              context: context,
-                                              channelDescriptors[0],
-                                              "${double.parse(_numberController.text) * 1000000}");
-                                      while (Navigator.canPop(context)) {
-                                        Navigator.of(context).pop();
-                                      }
-                                    }
-
-                                    print("fundingSuccess: " +
-                                        fundingSuccess.toString());
-                                    // mounted required to avoid warning
-                                    // "Don't use 'BuildContext's across async gaps."
-                                    if (mounted && !fundingSuccess) {
-                                      await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: Text('Warning'),
-                                              content: Text(
-                                                  'Your funding request failed! '
-                                                  'Please ensure your balance was '
-                                                  'sufficient to fund this request.'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text("OK"),
-                                                ),
-                                              ],
-                                            );
-                                          });
-                                    } else {
-                                      await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: Text('Success'),
-                                              content: Text(
-                                                  'Your funding request was '
-                                                  'successful. Please check your '
-                                                  'wallet for the status.'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text("OK"),
-                                                ),
-                                              ],
-                                            );
-                                          });
-                                    }
-                                  } else {
-                                    // Invalid input, show error message
-                                    print('Invalid input');
-                                  }
-                                },
+                                    });
+                              } else {
+                                await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text('Success'),
+                                        content:
+                                            Text('Your funding request was '
+                                                'successful. Please check your '
+                                                'wallet for the status.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text("OK"),
+                                          ),
+                                        ],
+                                      );
+                                    });
+                              }
+                            } else {
+                              // Invalid input, show error message
+                              print('Invalid input');
+                            }
+                          },
                         ),
                       ))),
             ],
