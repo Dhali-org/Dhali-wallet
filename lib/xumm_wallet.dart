@@ -372,7 +372,7 @@ class XummWallet extends DhaliWallet {
         "TransactionType": "PaymentChannelCreate",
         "Amount": amount,
         "Destination": destinationAddress,
-        "SettleDelay": 15768000
+        "SettleDelay": 1209600
       }, null);
       if (response.statusCode != 200) {
         throw HttpException("XUMM api rejected request");
