@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 Widget getTextButton(
   String text, {
-  required Function() onPressed,
+  required Function()? onPressed,
   double? textSize,
 }) {
   return ElevatedButton(
@@ -21,8 +21,10 @@ Widget getTextButton(
         style: TextStyle(fontSize: textSize ?? 24),
       ),
     ),
-    onPressed: () {
-      onPressed();
-    },
+    onPressed: onPressed != null
+        ? () {
+            onPressed();
+          }
+        : null,
   );
 }
