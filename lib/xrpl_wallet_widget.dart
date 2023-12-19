@@ -235,6 +235,9 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 child: Container(
                   margin: EdgeInsets.all(8),
                   child: TextFormField(
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(
                           RegExp(r'^\d+\.?\d{0,2}')),
