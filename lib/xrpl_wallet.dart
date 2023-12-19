@@ -325,7 +325,7 @@ class XRPLWallet extends DhaliWallet {
     var logger = Logger();
 
     try {
-      const int settleDelay = 15768000; // 6 months
+      const int settleDelay = 1209600; // 2 weeks
       return promiseToFuture(client.connect()).then((erg) {
         var paymentChannelCreateTransaction = PaymentChannelCreate(
           Account: _wallet!.address,
