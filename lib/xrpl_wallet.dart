@@ -79,7 +79,7 @@ class XRPLWallet extends DhaliWallet {
 
   Future<void> updateBalance() async {
     getOpenPaymentChannels(
-            destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
+            destination_address: "rhtfMhppuk5siMi8jvkencnCTyjciArCh7")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
         _channelDescriptor = paymentChannels[0];
