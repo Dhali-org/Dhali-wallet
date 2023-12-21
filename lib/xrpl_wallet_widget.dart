@@ -329,7 +329,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                               .getWallet()!
                                               .getOpenPaymentChannels(
                                                   destination_address:
-                                                      "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk");
+                                                      "rhtfMhppuk5siMi8jvkencnCTyjciArCh7");
                                       if (channelDescriptors.isEmpty) {
                                         // TODO : depend on Dhali public address
                                         channelDescriptors = [
@@ -337,7 +337,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                               .getWallet()!
                                               .openPaymentChannel(
                                                   context: context,
-                                                  "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk",
+                                                  "rhtfMhppuk5siMi8jvkencnCTyjciArCh7",
                                                   _numberController.text)
                                         ];
                                       }
