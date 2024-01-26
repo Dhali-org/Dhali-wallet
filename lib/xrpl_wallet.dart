@@ -40,6 +40,7 @@ class XRPLWallet extends DhaliWallet {
   String? mnemonic;
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
+  ValueNotifier<String?> _amount = ValueNotifier(null);
 
   XRPLWallet(String seed, {required this.getFirestore, bool testMode = false}) {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
@@ -93,19 +94,19 @@ class XRPLWallet extends DhaliWallet {
             .listen((snapshot) {
           if (snapshot.exists && snapshot.data() != null) {
             _toClaim = snapshot.data()!["to_claim"] as double;
-            _balance.value =
-                (_channelDescriptor!.amount - _toClaim!).toString();
+            _balance.value = _toClaim!.toString();
           } else {
-            _balance.value = _channelDescriptor!.amount.toString();
+            _balance.value = "0";
           }
+          _amount.value = _channelDescriptor!.amount.toString();
         });
       } else if (paymentChannels.isNotEmpty) {
         _channelDescriptor = paymentChannels[0];
-        _balance.value =
-            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
-                .toString();
+        _balance.value = (_toClaim == null ? 0 : _toClaim!).toString();
+        _amount.value = _channelDescriptor!.amount.toString();
       } else {
         _balance.value = "0";
+        _amount.value = "0";
       }
     });
   }
@@ -122,6 +123,11 @@ class XRPLWallet extends DhaliWallet {
   @override
   ValueNotifier<String?> get balance {
     return _balance;
+  }
+
+  @override
+  ValueNotifier<String?> get amount {
+    return _amount;
   }
 
   @override
