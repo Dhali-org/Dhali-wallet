@@ -61,6 +61,9 @@ void main() {
       const w = 1480;
       const h = 1080;
       DhaliWallet? mockWallet = MockXRPLWallet();
+      when((mockWallet as MockXRPLWallet).amount)
+          .thenReturn(ValueNotifier("0"));
+
       when((mockWallet as MockXRPLWallet).balance)
           .thenReturn(ValueNotifier("1000000"));
       when(mockWallet.address).thenReturn("a-random-address");
@@ -94,12 +97,12 @@ void main() {
       expect(find.text("Active wallet"), findsOneWidget);
       expect(find.text("Choose a wallet"), findsNothing);
 
-      expect(find.text('Status:'), findsOneWidget);
-      expect(find.text('Linked with XRPL '), findsOneWidget);
       expect(find.text('Classic address:'), findsOneWidget);
       expect(find.text("Show"), findsOneWidget);
-      expect(find.text('Dhali balance:'), findsOneWidget);
+      expect(find.text("Total deposited:"), findsOneWidget);
+      expect(find.text("Total spent:"), findsOneWidget);
       expect(find.text('1 XRP '), findsOneWidget);
+      expect(find.text('0 XRP '), findsOneWidget);
 
       await tester.tap(find.text("Show"));
       await tester.pumpAndSettle();
@@ -126,6 +129,8 @@ void main() {
     const w = 1480;
     const h = 1080;
     DhaliWallet? mockWallet = MockXummWallet();
+    when((mockWallet as MockXummWallet).amount)
+        .thenReturn(ValueNotifier("1000000"));
     when((mockWallet as MockXummWallet).balance)
         .thenReturn(ValueNotifier("2000000"));
     when(mockWallet.address).thenReturn("a-random-address");
@@ -158,12 +163,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key("xumm_wallet_tile")));
     await tester.pumpAndSettle();
-    expect(find.text('Status:'), findsOneWidget);
-    expect(find.text('Linked with XUMM '), findsOneWidget);
+
     expect(find.text('Classic address:'), findsOneWidget);
     expect(find.text("Show"), findsOneWidget);
-    expect(find.text('Dhali balance:'), findsOneWidget);
+    expect(find.text("Total deposited:"), findsOneWidget);
+    expect(find.text("Total spent:"), findsOneWidget);
     expect(find.text('2 XRP '), findsOneWidget);
+    expect(find.text('1 XRP '), findsOneWidget);
 
     await tester.tap(find.text("Available wallets"));
     await tester.pumpAndSettle();

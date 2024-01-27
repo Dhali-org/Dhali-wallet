@@ -30,8 +30,11 @@ class ClaimSigningException implements Exception {
 abstract class DhaliWallet {
   String get address;
 
-  // The Dhali balance, measured in drops of XRP
+  // The balance is the total value that has been used already from the channel
   ValueListenable<String?> get balance;
+
+  // The amounnt is the total that has been deposited into the channel
+  ValueListenable<String?> get amount;
 
   Future<dynamic> getAvailableNFTs();
   Future<bool> acceptOffer(String offerIndex, {required BuildContext? context});

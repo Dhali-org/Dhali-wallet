@@ -108,6 +108,14 @@ class MockXRPLWallet extends _i1.Mock implements _i6.XRPLWallet {
         ),
       ) as _i3.ValueNotifier<String?>);
   @override
+  _i3.ValueNotifier<String?> get amount => (super.noSuchMethod(
+        Invocation.getter(#amount),
+        returnValue: _FakeValueNotifier_1<String?>(
+          this,
+          Invocation.getter(#amount),
+        ),
+      ) as _i3.ValueNotifier<String?>);
+  @override
   _i7.Future<void> updateBalance() => (super.noSuchMethod(
         Invocation.method(
           #updateBalance,
@@ -290,6 +298,14 @@ class MockXummWallet extends _i1.Mock implements _i9.XummWallet {
         returnValue: _FakeValueNotifier_1<String?>(
           this,
           Invocation.getter(#balance),
+        ),
+      ) as _i3.ValueNotifier<String?>);
+  @override
+  _i3.ValueNotifier<String?> get amount => (super.noSuchMethod(
+        Invocation.getter(#amount),
+        returnValue: _FakeValueNotifier_1<String?>(
+          this,
+          Invocation.getter(#amount),
         ),
       ) as _i3.ValueNotifier<String?>);
   @override

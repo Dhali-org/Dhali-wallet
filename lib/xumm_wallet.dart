@@ -103,6 +103,7 @@ class XummWallet extends DhaliWallet {
   double? _toClaim; // Must only be set in updateBalance()
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
+  ValueNotifier<String?> _amount = ValueNotifier(null);
 
   XummWallet(String address,
       {required this.getFirestore, bool testMode = false})
@@ -114,6 +115,7 @@ class XummWallet extends DhaliWallet {
     try {
       updateBalance();
     } catch (e, stacktrace) {
+      _amount.value = "0";
       _balance.value = "0";
       logger.e('Exception caught: ${e.toString()}');
       logger.e(stacktrace);
@@ -140,19 +142,19 @@ class XummWallet extends DhaliWallet {
             .listen((snapshot) {
           if (snapshot.exists && snapshot.data() != null) {
             _toClaim = snapshot.data()!["to_claim"] as double;
-            _balance.value =
-                (_channelDescriptor!.amount - _toClaim!).toString();
+            _balance.value = _toClaim!.toString();
           } else {
-            _balance.value = _channelDescriptor!.amount.toString();
+            _balance.value = "0";
           }
+          _amount.value = _channelDescriptor!.amount.toString();
         });
       } else if (paymentChannels.isNotEmpty) {
         _channelDescriptor = paymentChannels[0];
-        _balance.value =
-            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
-                .toString();
+        _balance.value = (_toClaim == null ? 0 : _toClaim!).toString();
+        _amount.value = _channelDescriptor!.amount.toString();
       } else {
         _balance.value = "0";
+        _amount.value = "0";
       }
     });
   }
@@ -165,6 +167,11 @@ class XummWallet extends DhaliWallet {
   @override
   ValueNotifier<String?> get balance {
     return _balance;
+  }
+
+  @override
+  ValueNotifier<String?> get amount {
+    return _amount;
   }
 
   @override
