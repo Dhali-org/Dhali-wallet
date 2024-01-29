@@ -69,6 +69,23 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isDesktop = MediaQuery.of(context).size.width > 720;
     double fontSize = isDesktop ? 16 : 10;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0000FF),
+        leading: const Icon(
+          Icons.warning,
+          color: Colors.red,
+        ),
+        title: Text(
+          "Use testnet wallets in Xumm: \n"
+          "1. Toggle developer mode,  2. Select "
+          "XRPL testnet",
+          softWrap: true,
+          style: TextStyle(
+              fontSize: fontSize,
+              color: Colors.white,
+              fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Center(
         child: !_loggedIn
             ? Column(
