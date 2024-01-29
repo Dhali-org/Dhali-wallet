@@ -67,38 +67,50 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     bool isDesktop = MediaQuery.of(context).size.width > 720;
-    double fontSize = isDesktop ? 40 : 14;
+    double fontSize = isDesktop ? 16 : 10;
     return Scaffold(
-      body: !_loggedIn
-          ? getTextButton("Sign in to XUMM", textSize: fontSize, onPressed: () {
-              setState(() {
-                _loggedIn = true;
-              });
-            })
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                XRPLWalletWidget(
-                  onActivation: null,
-                  walletType: Wallet.XummWallet,
-                  getWallet: () => _wallet,
-                  setWallet: (wallet) {
-                    _wallet = wallet;
-                  },
-                  isDesktop: MediaQuery.of(context).size.width > 720,
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                getTextButton("Log out", textSize: fontSize, onPressed: () {
-                  setState(() {
-                    _wallet = null;
-                    _loggedIn = false;
-                  });
-                })
-              ],
-            ),
+      body: Center(
+        child: !_loggedIn
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  getTextButton("Sign in to XUMM", textSize: fontSize,
+                      onPressed: () {
+                    setState(() {
+                      _loggedIn = true;
+                    });
+                  })
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  XRPLWalletWidget(
+                    onActivation: null,
+                    walletType: Wallet.XummWallet,
+                    getWallet: () => _wallet,
+                    setWallet: (wallet) {
+                      _wallet = wallet;
+                    },
+                    isDesktop: MediaQuery.of(context).size.width > 720,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  getTextButton("Log out", textSize: fontSize, onPressed: () {
+                    setState(() {
+                      _wallet = null;
+                      _loggedIn = false;
+                    });
+                  })
+                ],
+              ),
+      ),
     );
   }
 }

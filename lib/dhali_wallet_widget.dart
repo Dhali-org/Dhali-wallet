@@ -273,6 +273,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             getWallet: widget.getWallet,
             setWallet: setWalletAndRestore,
             onActivation: widget.onActivation,
+            isDesktop: MediaQuery.of(context).size.width > 720,
           );
         }
         break;
@@ -282,6 +283,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
           onActivation: widget.onActivation,
+          isDesktop: MediaQuery.of(context).size.width > 720,
         );
 
         break;
@@ -291,6 +293,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
           getWallet: widget.getWallet,
           setWallet: setWalletAndRestore,
           onActivation: widget.onActivation,
+          isDesktop: MediaQuery.of(context).size.width > 500,
         );
         break;
       default:

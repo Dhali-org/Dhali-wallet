@@ -23,9 +23,12 @@ class XRPLWalletWidget extends StatefulWidget {
       required this.walletType,
       required this.getWallet,
       required this.setWallet,
-      required this.onActivation});
+      required this.onActivation,
+      bool? isDesktop})
+      : _isDesktop = isDesktop ?? true;
 
   final void Function()? onActivation;
+  final bool _isDesktop;
   final DhaliWallet? Function() getWallet;
   final Function(DhaliWallet?) setWallet;
   final Wallet walletType;
@@ -39,6 +42,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   bool waiting = false;
   TextEditingController _numberController = TextEditingController();
   TextEditingController _number2Controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _submittedNumber = '';
   PaymentChannelDescriptor? _descriptor;
   @override
@@ -76,7 +80,8 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
           return Text('Error: ${snapshot.error}');
         } else {
           var data = jsonDecode(snapshot.data!.body) as Map<String, dynamic>;
-          displayQRCodeFrom("Scan to connect", context, data);
+          displayQRCodeFrom("Scan to connect", context, data,
+              isDesktop: widget._isDesktop);
           poll(
             data["uuid"],
             onSuccess: (http.Response response) {
@@ -85,7 +90,8 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
               XummWallet wallet = XummWallet(
                   jsonDecode(response.body)["response"]["account"],
                   getFirestore: () => FirebaseFirestore.instance,
-                  testMode: true);
+                  testMode: true,
+                  isDesktop: widget._isDesktop);
               setState(() {
                 widget.setWallet(
                   wallet,
@@ -103,7 +109,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   }
 
   Widget viewAccount() {
-    const double fontSize = 16;
+    double fontSize = widget._isDesktop ? 16 : 10;
+    double verticalInsetPadding =
+        widget._isDesktop == true ? 24.0 : 5.0; // 24 is default
+    double horizontalInsetPadding =
+        widget._isDesktop == true ? 40.0 : 5.0; // 40 is default
     return Center(
       child: Table(
         defaultColumnWidth: IntrinsicColumnWidth(),
@@ -128,7 +138,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: Text('Classic address'),
+                            insetPadding: EdgeInsets.symmetric(
+                                vertical: verticalInsetPadding,
+                                horizontal: horizontalInsetPadding),
+                            title: Text('Classic address',
+                                style: TextStyle(fontSize: fontSize)),
                             content: SelectableText(widget.getWallet()!.address,
                                 style: TextStyle(fontSize: fontSize)),
                             actions: [
@@ -190,13 +204,18 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  title: Text('Information'),
+                                  insetPadding: EdgeInsets.symmetric(
+                                      vertical: verticalInsetPadding,
+                                      horizontal: horizontalInsetPadding),
+                                  title: Text('Information',
+                                      style: TextStyle(fontSize: fontSize)),
                                   content: Text(
                                       'This is the total amount of XRP '
                                       'you have placed into your payment channel '
                                       'with Dhali.\n\n'
                                       'To spend this, you must click '
-                                      '\'Authorise spending\'.'),
+                                      '\'Get payment claim\'.',
+                                      style: TextStyle(fontSize: fontSize)),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
@@ -252,6 +271,10 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
+                                          insetPadding: EdgeInsets.symmetric(
+                                              vertical: verticalInsetPadding,
+                                              horizontal:
+                                                  horizontalInsetPadding),
                                           title: Text('Are you sure?'),
                                           content: Text(
                                               'You are about to fund your payment channel!\n\n'
@@ -288,6 +311,10 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                             false, // Disallow dismiss by touching outside
                                         builder: (BuildContext context) {
                                           return AlertDialog(
+                                            insetPadding: EdgeInsets.symmetric(
+                                                vertical: verticalInsetPadding,
+                                                horizontal:
+                                                    horizontalInsetPadding),
                                             actions: [
                                               TextButton(
                                                   onPressed: () {
@@ -347,6 +374,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                           context: context,
                                           builder: (context) {
                                             return AlertDialog(
+                                              insetPadding: EdgeInsets.symmetric(
+                                                  vertical:
+                                                      verticalInsetPadding,
+                                                  horizontal:
+                                                      horizontalInsetPadding),
                                               title: Text('Warning'),
                                               content: Text(
                                                   'Your funding request failed! '
@@ -367,6 +399,11 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                           context: context,
                                           builder: (context) {
                                             return AlertDialog(
+                                              insetPadding: EdgeInsets.symmetric(
+                                                  vertical:
+                                                      verticalInsetPadding,
+                                                  horizontal:
+                                                      horizontalInsetPadding),
                                               title: Text('Success'),
                                               content: Text(
                                                   'Your funding request was '
@@ -437,10 +474,15 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  title: Text('Information'),
-                                  content:
-                                      Text('This is the total amount of XRP '
-                                          'you have spent through Dhali.'),
+                                  insetPadding: EdgeInsets.symmetric(
+                                      vertical: verticalInsetPadding,
+                                      horizontal: horizontalInsetPadding),
+                                  title: Text('Information',
+                                      style: TextStyle(fontSize: fontSize)),
+                                  content: Text(
+                                      'This is the total amount of XRP '
+                                      'you have spent through Dhali.',
+                                      style: TextStyle(fontSize: fontSize)),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
@@ -496,6 +538,10 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
+                                          insetPadding: EdgeInsets.symmetric(
+                                              vertical: verticalInsetPadding,
+                                              horizontal:
+                                                  horizontalInsetPadding),
                                           title: Text('Are you sure?'),
                                           content: Text(
                                               'You are about to create a payment claim.\n\n'
@@ -533,6 +579,10 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                             false, // Disallow dismiss by touching outside
                                         builder: (BuildContext context) {
                                           return AlertDialog(
+                                            insetPadding: EdgeInsets.symmetric(
+                                                vertical: verticalInsetPadding,
+                                                horizontal:
+                                                    horizontalInsetPadding),
                                             actions: [
                                               TextButton(
                                                   onPressed: () {
@@ -593,67 +643,18 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                                           context: context,
                                           builder: (context) {
                                             return AlertDialog(
+                                              insetPadding: EdgeInsets.symmetric(
+                                                  vertical:
+                                                      verticalInsetPadding,
+                                                  horizontal:
+                                                      horizontalInsetPadding),
                                               content: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Text('Success!',
                                                       style: TextStyle(
-                                                          fontSize: 25.0)),
-                                                  Text(
-                                                      'Here is your payment claim. Please take a copy:\n\n',
-                                                      style: TextStyle(
-                                                          fontSize: 16.0)),
-                                                  Container(
-                                                    padding: EdgeInsets.all(
-                                                        8.0), // Add some padding
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.grey[
-                                                            850], // Light grey background
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                8.0), // Grey border,
-                                                        border: Border.all(
-                                                            color: Colors
-                                                                .grey[200]!)),
-                                                    child: SelectableText(
-                                                      jsonEncode(claim),
-                                                      style: TextStyle(
-                                                          fontFamily:
-                                                              'Courier', // Monospaced font
-                                                          fontSize: 12.0,
-                                                          color: Colors.white),
-                                                    ),
-                                                  ),
-                                                  Text('\n\nExample usage:\n',
-                                                      style: TextStyle(
-                                                          fontSize: 16.0)),
-                                                  Container(
-                                                      padding: EdgeInsets.all(
-                                                          8.0), // Add some padding
-                                                      decoration: BoxDecoration(
-                                                          color: Colors.grey[
-                                                              850], // Light grey background
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                          border: Border.all(
-                                                              color: Colors
-                                                                      .grey[
-                                                                  200]!) // Grey border
-                                                          ),
-                                                      child: SelectableText(
-                                                        '\$ PAYMENT_CLAIM=\'${jsonEncode(claim)}\''
-                                                        '\n\n'
-                                                        '\$ curl -H "Payment-Claim: \$PAYMENT_CLAIM" https://run.api.dhali.io/de3e1aa49-575a-488a-999e-d287c14c2c60/api/v1/xls20-nfts/all/issuers',
-                                                        style: TextStyle(
-                                                            fontFamily:
-                                                                'Courier', // Monospaced font
-                                                            fontSize: 12.0,
-                                                            color:
-                                                                Colors.white),
-                                                      ))
+                                                          fontSize: fontSize)),
+                                                  getPaymentClaimOutput(claim)
                                                 ],
                                               ),
                                               actions: [
@@ -691,7 +692,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                     margin: EdgeInsets.all(8),
                     child: Text('Memorable words:',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                            fontSize: fontSize, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 TableCell(
@@ -720,6 +721,60 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
         ],
       ),
     );
+  }
+
+  Widget getPaymentClaimOutput(Map<String, String> claim) {
+    double textFontSize = widget._isDesktop ? 16.0 : 10.0;
+    double codeFontSize = widget._isDesktop ? 12.0 : 8.0;
+    return Container(
+        height: 300,
+        width: 400,
+        child: Scrollbar(
+            thickness: 5,
+            trackVisibility: true,
+            thumbVisibility: true,
+            controller: _scrollController,
+            child: ListView(
+                shrinkWrap: true,
+                controller: _scrollController,
+                children: [
+                  Text('\nHere is your payment claim. Please take a copy:\n',
+                      style: TextStyle(fontSize: textFontSize)),
+                  Container(
+                    padding: EdgeInsets.all(8.0), // Add some padding
+                    decoration: BoxDecoration(
+                        color: Colors.grey[850], // Light grey background
+                        borderRadius:
+                            BorderRadius.circular(8.0), // Grey border,
+                        border: Border.all(color: Colors.grey[200]!)),
+                    child: SelectableText(
+                      jsonEncode(claim),
+                      style: TextStyle(
+                          fontFamily: 'Courier', // Monospaced font
+                          fontSize: codeFontSize,
+                          color: Colors.white),
+                    ),
+                  ),
+                  Text('\n\nExample usage:\n',
+                      style: TextStyle(fontSize: textFontSize)),
+                  Container(
+                      padding: EdgeInsets.all(8.0), // Add some padding
+                      decoration: BoxDecoration(
+                          color: Colors.grey[850], // Light grey background
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(
+                              color: Colors.grey[200]!) // Grey border
+                          ),
+                      child: SelectableText(
+                        '\$ PAYMENT_CLAIM=\'${jsonEncode(claim)}\''
+                        '\n\n'
+                        '\$ curl -H "Payment-Claim: \$PAYMENT_CLAIM" https://run.api.dhali.io/de3e1aa49-575a-488a-999e-d287c14c2c60/api/v1/xls20-nfts/all/issuers',
+                        style: TextStyle(
+                            fontFamily: 'Courier',
+                            fontSize: codeFontSize,
+                            color: Colors.white),
+                      ))
+                ])));
   }
 }
 

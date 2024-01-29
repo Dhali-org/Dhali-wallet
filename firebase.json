@@ -4,7 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "site": "dhali-wallet-staging",
+    "site": "dhali-xumm-wallet",
     "public": "build/web",
     "ignore": [
       "firebase.json",
