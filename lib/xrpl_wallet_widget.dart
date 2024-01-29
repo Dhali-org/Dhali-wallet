@@ -529,12 +529,61 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                         child: getTextButton(
                           'Get payment claim',
                           textSize: fontSize,
-                          onPressed: _number2Controller.text.isEmpty &&
-                                  double.tryParse(_number2Controller.text) != 0
+                          onPressed: _number2Controller.text.isEmpty ||
+                                  double.tryParse(_number2Controller.text) ==
+                                      0 ||
+                                  widget.getWallet()!.balance.value == null ||
+                                  widget.getWallet()!.amount.value == null ||
+                                  double.tryParse(
+                                          widget.getWallet()!.balance.value!) ==
+                                      null ||
+                                  double.tryParse(
+                                          widget.getWallet()!.amount.value!) ==
+                                      null
                               ? null
                               : () async {
-                                  bool? fundPaymentChannel = await showDialog<
-                                          bool>(
+                                  bool? fundPaymentChannel;
+                                  double balance = double.parse(
+                                      widget.getWallet()!.balance.value!);
+                                  double amount = double.parse(
+                                      widget.getWallet()!.amount.value!);
+                                  double paymentClaimAmount =
+                                      double.parse(_number2Controller.text) *
+                                          1000000;
+
+                                  if (balance + paymentClaimAmount > amount) {
+                                    fundPaymentChannel = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            insetPadding: EdgeInsets.symmetric(
+                                                vertical: verticalInsetPadding,
+                                                horizontal:
+                                                    horizontalInsetPadding),
+                                            title: const Text(
+                                                'Insufficient deposit'),
+                                            content: const Text(
+                                              'The deposited amount must be '
+                                              'larger than this claim plus your'
+                                              ' total spent',
+                                              softWrap: true,
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context, false);
+                                                },
+                                                child: const Text("OK"),
+                                              ),
+                                            ],
+                                          );
+                                        });
+                                  }
+                                  if (fundPaymentChannel != null &&
+                                      !fundPaymentChannel) {
+                                    return;
+                                  }
+                                  fundPaymentChannel = await showDialog<bool>(
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
