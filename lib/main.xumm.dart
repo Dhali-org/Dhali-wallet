@@ -116,15 +116,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                     isDesktop: MediaQuery.of(context).size.width > 720,
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  getTextButton("Log out", textSize: fontSize, onPressed: () {
-                    setState(() {
-                      _wallet = null;
-                      _loggedIn = false;
-                    });
-                  })
                 ],
               ),
       ),
