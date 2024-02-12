@@ -13,7 +13,7 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum Wallet { RawXRPWallet, XummWallet, GemWallet, UnselectedWallet }
+enum Wallet { XummWallet, GemWallet, RawXRPWallet, UnselectedWallet }
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen(
@@ -332,6 +332,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
             (BuildContext context, int index) {
               final wallet = Wallet.values[index];
 
+              if (wallet == Wallet.RawXRPWallet &&
+                  const String.fromEnvironment('INTEGRATION') != "true") {
+                return null;
+              }
+
               Widget image;
               String text;
               Widget spacer;
@@ -350,8 +355,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                     height: icon_height);
                 text = " Link XUMM wallet";
                 spacer = SizedBox(height: spacer_height);
-              } else if (wallet == Wallet.RawXRPWallet &&
-                  const String.fromEnvironment('INTEGRATION') != "true") {
+              } else if (wallet == Wallet.RawXRPWallet) {
                 key = Key("raw_xrp_wallet_tile");
                 image = Image.asset(
                   widget.isImported
@@ -382,6 +386,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
               }
 
               return Column(children: [
+                spacer,
                 ElevatedButton(
                   key: key,
                   onPressed: () {
@@ -413,11 +418,13 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                               )
                             ],
                           ))),
-                ),
-                spacer
+                )
               ]);
             },
-            childCount: Wallet.values.length - 1,
+            childCount: Wallet.values.length -
+                ((const String.fromEnvironment('INTEGRATION') == "true")
+                    ? 1
+                    : 2),
           ),
         ),
       ],
