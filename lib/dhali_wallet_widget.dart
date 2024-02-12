@@ -350,8 +350,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                     height: icon_height);
                 text = " Link XUMM wallet";
                 spacer = SizedBox(height: spacer_height);
-              } else if (wallet == Wallet.RawXRPWallet &&
-                  const String.fromEnvironment('INTEGRATION') != "true") {
+              } else if (wallet == Wallet.RawXRPWallet) {
                 key = Key("raw_xrp_wallet_tile");
                 image = Image.asset(
                   widget.isImported
