@@ -47,6 +47,9 @@ void main() {
       expect(find.text("Available wallets"), findsOneWidget);
       expect(find.text("Active wallet"), findsOneWidget);
       expect(find.text("You must choose a wallet "), findsNothing);
+      expect(find.text(" Use free test wallet"), findsNothing);
+      expect(find.text(" Link XUMM wallet"), findsOneWidget);
+      expect(find.text(" Link GemWallet"), findsOneWidget);
 
       await tester.tap(find.text("Active wallet"));
       await tester.pumpAndSettle();
