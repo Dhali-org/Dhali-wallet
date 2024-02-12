@@ -1,0 +1,25 @@
+name: deployed-prod
+'on':
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Configure the app for prod
+        run: |
+          mv firebase{.prod,}.json
+          mv lib/firebase_options{.prod,}.dart 
+      - name: Build the app
+        run: flutter build web --release  --release -t lib/main.xumm.dart
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DHALI_PROD }}'
+          channelId: live
+          projectId: dhali-prod

@@ -28,8 +28,7 @@ class XRPLWallet extends DhaliWallet {
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
-  // TODO: change once prod-ready:
-  static String mainnetUrl = 'NOT IMPLEMENTED YET';
+  static String mainnetUrl = 'wss://xrplcluster.com/';
 
   PaymentChannelDescriptor?
       _channelDescriptor; // Must only be set in updateBalance()
@@ -41,6 +40,7 @@ class XRPLWallet extends DhaliWallet {
   String? mnemonic;
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
+  ValueNotifier<String?> _amount = ValueNotifier(null);
 
   XRPLWallet(String seed, {required this.getFirestore, bool testMode = false}) {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
@@ -80,7 +80,7 @@ class XRPLWallet extends DhaliWallet {
 
   Future<void> updateBalance() async {
     getOpenPaymentChannels(
-            destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
+            destination_address: "rhtfMhppuk5siMi8jvkencnCTyjciArCh7")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
         _channelDescriptor = paymentChannels[0];
@@ -94,19 +94,19 @@ class XRPLWallet extends DhaliWallet {
             .listen((snapshot) {
           if (snapshot.exists && snapshot.data() != null) {
             _toClaim = snapshot.data()!["to_claim"] as double;
-            _balance.value =
-                (_channelDescriptor!.amount - _toClaim!).toString();
+            _balance.value = _toClaim!.toString();
           } else {
-            _balance.value = _channelDescriptor!.amount.toString();
+            _balance.value = "0";
           }
+          _amount.value = _channelDescriptor!.amount.toString();
         });
       } else if (paymentChannels.isNotEmpty) {
         _channelDescriptor = paymentChannels[0];
-        _balance.value =
-            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
-                .toString();
+        _balance.value = (_toClaim == null ? 0 : _toClaim!).toString();
+        _amount.value = _channelDescriptor!.amount.toString();
       } else {
         _balance.value = "0";
+        _amount.value = "0";
       }
     });
   }
@@ -126,10 +126,16 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
+  ValueNotifier<String?> get amount {
+    return _amount;
+  }
+
+  @override
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required PaymentChannelDescriptor channelDescriptor}) async {
+      required PaymentChannelDescriptor channelDescriptor,
+      required BuildContext? context}) async {
     return {
       "account": address,
       "destination_account": destinationAddress,
@@ -179,7 +185,8 @@ class XRPLWallet extends DhaliWallet {
   }
 
   @override
-  Future<bool> acceptOffer(String offerIndex) async {
+  Future<bool> acceptOffer(String offerIndex,
+      {required BuildContext? context}) async {
     Client client = Client(_netUrl);
 
     var logger = Logger();
@@ -318,12 +325,13 @@ class XRPLWallet extends DhaliWallet {
 
   @override
   Future<PaymentChannelDescriptor> openPaymentChannel(
-      String destinationAddress, String amount) async {
+      String destinationAddress, String amount,
+      {required BuildContext? context}) async {
     Client client = Client(_netUrl);
     var logger = Logger();
 
     try {
-      const int settleDelay = 15768000; // 6 months
+      const int settleDelay = 1209600; // 2 weeks
       return promiseToFuture(client.connect()).then((erg) {
         var paymentChannelCreateTransaction = PaymentChannelCreate(
           Account: _wallet!.address,
@@ -428,7 +436,8 @@ Channel was validated: $channelIsValidated
 
   @override
   Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount) async {
+      PaymentChannelDescriptor descriptor, String amount,
+      {required BuildContext? context}) async {
     _channelDescriptor = descriptor;
     Client client = Client(_netUrl);
     var logger = Logger();

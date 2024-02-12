@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dhali_wallet/dhali_wallet.dart';
 import 'package:dhali_wallet/wallet_types.dart';
+import 'package:dhali_wallet/widgets/buttons.dart';
 import 'package:dhali_wallet/xrpl_wallet.dart';
 import 'package:flutter/material.dart';
 import 'dart:html';
@@ -22,13 +23,84 @@ class SignatureClaimPair {
   SignatureClaimPair(this.signature, this.amount);
 }
 
+Future<void> _showModalFromURL(String title, BuildContext? context,
+    Map<String, dynamic> data, bool? isDesktop) async {
+  final pngUrl = data["refs"]["qr_png"];
+  final response = await http.get(Uri.parse(pngUrl));
+  double fontSize = isDesktop == true ? 20.0 : 12.0;
+  double padding = isDesktop == true ? 20.0 : 5.0;
+  double verticalInsetPadding = isDesktop == true ? 24.0 : 5.0; // 24 is default
+  double horizontalInsetPadding =
+      isDesktop == true ? 40.0 : 5.0; // 40 is default
+
+  if (context != null && response.statusCode == 200) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+              vertical: verticalInsetPadding,
+              horizontal: horizontalInsetPadding),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(20.0)), // Set your desired border radius here
+          ),
+          title: Text(
+            title,
+            style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w900),
+          ),
+          contentPadding: EdgeInsets.all(padding),
+          actionsAlignment: MainAxisAlignment.center,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Open XUMM wallet on your mobile phone and scan this QR code or"
+                " click \"Open XUMM\".",
+                softWrap: true,
+                style: TextStyle(
+                  fontSize: fontSize,
+                ),
+              ),
+              Image.memory(
+                response.bodyBytes,
+                width: 300,
+                height: 300,
+              )
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: EdgeInsets.all(
+                  padding), // Adjust this value to your preference
+              child:
+                  getTextButton('Open XUMM', textSize: fontSize, onPressed: () {
+                final Uri _url = Uri.parse(data["next"]["always"]);
+                launchUrl(_url, mode: LaunchMode.externalApplication);
+              }),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    print('Failed to load the image from the URL');
+  }
+}
+
+void displayQRCodeFrom(
+    String title, BuildContext? context, Map<String, dynamic> data,
+    {bool? isDesktop}) {
+  _showModalFromURL(title, context, data, isDesktop);
+}
+
 class XummWallet extends DhaliWallet {
   final FirebaseFirestore Function() getFirestore;
   static String uninitialisedUrl = 'NOT INITIALISED!';
   // Choose from https://xrpl.org/public-servers.html
   static String testNetUrl = 'wss://s.altnet.rippletest.net/';
   // TODO: change once prod-ready:
-  static String mainnetUrl = 'NOT IMPLEMENTED YET';
+  static String mainnetUrl = 'wss://xrplcluster.com/';
 
   String _netUrl = uninitialisedUrl;
 
@@ -41,10 +113,13 @@ class XummWallet extends DhaliWallet {
   double? _toClaim; // Must only be set in updateBalance()
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
+  ValueNotifier<String?> _amount = ValueNotifier(null);
+  final bool _isDesktop;
 
   XummWallet(String address,
-      {required this.getFirestore, bool testMode = false})
-      : _address = address {
+      {required this.getFirestore, bool testMode = false, bool? isDesktop})
+      : _address = address,
+        _isDesktop = isDesktop ?? true {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     Client client = Client(_netUrl);
     var logger = Logger();
@@ -52,6 +127,7 @@ class XummWallet extends DhaliWallet {
     try {
       updateBalance();
     } catch (e, stacktrace) {
+      _amount.value = "0";
       _balance.value = "0";
       logger.e('Exception caught: ${e.toString()}');
       logger.e(stacktrace);
@@ -64,7 +140,7 @@ class XummWallet extends DhaliWallet {
 
   Future<void> updateBalance() async {
     getOpenPaymentChannels(
-            destination_address: "rstbSTpPcyxMsiXwkBxS9tFTrg2JsDNxWk")
+            destination_address: "rhtfMhppuk5siMi8jvkencnCTyjciArCh7")
         .then((paymentChannels) {
       if (paymentChannels.isNotEmpty && _channelDescriptor == null) {
         _channelDescriptor = paymentChannels[0];
@@ -78,19 +154,19 @@ class XummWallet extends DhaliWallet {
             .listen((snapshot) {
           if (snapshot.exists && snapshot.data() != null) {
             _toClaim = snapshot.data()!["to_claim"] as double;
-            _balance.value =
-                (_channelDescriptor!.amount - _toClaim!).toString();
+            _balance.value = _toClaim!.toString();
           } else {
-            _balance.value = _channelDescriptor!.amount.toString();
+            _balance.value = "0";
           }
+          _amount.value = _channelDescriptor!.amount.toString();
         });
       } else if (paymentChannels.isNotEmpty) {
         _channelDescriptor = paymentChannels[0];
-        _balance.value =
-            (_channelDescriptor!.amount - (_toClaim == null ? 0 : _toClaim!))
-                .toString();
+        _balance.value = (_toClaim == null ? 0 : _toClaim!).toString();
+        _amount.value = _channelDescriptor!.amount.toString();
       } else {
         _balance.value = "0";
+        _amount.value = "0";
       }
     });
   }
@@ -106,8 +182,14 @@ class XummWallet extends DhaliWallet {
   }
 
   @override
+  ValueNotifier<String?> get amount {
+    return _amount;
+  }
+
+  @override
   Future<bool> fundPaymentChannel(
-      PaymentChannelDescriptor descriptor, String amount) async {
+      PaymentChannelDescriptor descriptor, String amount,
+      {required BuildContext? context}) async {
     var logger = Logger();
     try {
       http.Response response = await XummRequest({
@@ -119,10 +201,13 @@ class XummWallet extends DhaliWallet {
         return false;
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to fund your balance", context, data,
+          isDesktop: _isDesktop);
       bool result =
           await poll(data["uuid"], onSuccess: (http.Response response) {
+        if (context != null) {
+          Navigator.pop(context);
+        }
         logger.d("fundingPaymentChannel.onSuccess", response.body);
         updateBalance();
         return true;
@@ -144,7 +229,8 @@ class XummWallet extends DhaliWallet {
   Future<Map<String, String>> preparePayment(
       {required String destinationAddress,
       required String authAmount,
-      required PaymentChannelDescriptor channelDescriptor}) async {
+      required PaymentChannelDescriptor channelDescriptor,
+      required BuildContext? context}) async {
     if (_sigClaimPair == null ||
         _sigClaimPair!.amount < int.parse(authAmount)) {
       http.Response response = await XummRequest({
@@ -156,9 +242,12 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to make payment", context, data,
+          isDesktop: _isDesktop);
       return await poll(data["uuid"], onSuccess: (http.Response response) {
+        if (context != null) {
+          Navigator.pop(context);
+        }
         Map<String, dynamic> body = jsonDecode(response.body);
         _sigClaimPair =
             SignatureClaimPair(body["response"]["hex"], int.parse(authAmount));
@@ -222,17 +311,20 @@ class XummWallet extends DhaliWallet {
   }
 
   @override
-  Future<bool> acceptOffer(String offerIndex) async {
+  Future<bool> acceptOffer(String offerIndex,
+      {required BuildContext? context}) async {
     http.Response response = await XummRequest({
       "TransactionType": "NFTokenAcceptOffer",
       "NFTokenSellOffer": offerIndex,
       "Account": address
     }, null);
     var data = jsonDecode(response.body) as Map<String, dynamic>;
-    final Uri _url = Uri.parse(data["next"]["always"]);
-    launchUrl(_url, mode: LaunchMode.externalApplication);
+    displayQRCodeFrom("Scan to accept NFT", context, data,
+        isDesktop: _isDesktop);
     await poll(data["uuid"],
-        onSuccess: (http.Response response) => {},
+        onSuccess: (http.Response response) => {
+              if (context != null) {Navigator.pop(context)}
+            },
         onError: (http.Response response) => {},
         onTimeout: () => {});
 
@@ -291,7 +383,8 @@ class XummWallet extends DhaliWallet {
 
   @override
   Future<PaymentChannelDescriptor> openPaymentChannel(
-      String destinationAddress, String amount) async {
+      String destinationAddress, String amount,
+      {required BuildContext? context}) async {
     // This method is implemented such that it can never open more than one
     // payment channel to the same destination address
     var paymentChannel =
@@ -301,16 +394,18 @@ class XummWallet extends DhaliWallet {
         "TransactionType": "PaymentChannelCreate",
         "Amount": amount,
         "Destination": destinationAddress,
-        "SettleDelay": 15768000
+        "SettleDelay": 1209600
       }, null);
       if (response.statusCode != 200) {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      final Uri _url = Uri.parse(data["next"]["always"]);
-      launchUrl(_url, mode: LaunchMode.externalApplication);
+      displayQRCodeFrom("Scan to open a payment channel", context, data,
+          isDesktop: _isDesktop);
       await poll(data["uuid"],
-          onSuccess: (http.Response response) => {},
+          onSuccess: (http.Response response) => {
+                if (context != null) {Navigator.pop(context)}
+              },
           onError: (http.Response response) => {},
           onTimeout: () => {});
       paymentChannel =

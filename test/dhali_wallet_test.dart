@@ -34,7 +34,6 @@ void main() {
           platform: TargetPlatform.iOS,
         ),
         home: WalletHomeScreen(
-          bodyTextColor: Color(0xFF0000FF),
           title: "wallet",
           getWallet: () {
             return null;
@@ -62,6 +61,9 @@ void main() {
       const w = 1480;
       const h = 1080;
       DhaliWallet? mockWallet = MockXRPLWallet();
+      when((mockWallet as MockXRPLWallet).amount)
+          .thenReturn(ValueNotifier("0"));
+
       when((mockWallet as MockXRPLWallet).balance)
           .thenReturn(ValueNotifier("1000000"));
       when(mockWallet.address).thenReturn("a-random-address");
@@ -79,7 +81,6 @@ void main() {
           platform: TargetPlatform.iOS,
         ),
         home: WalletHomeScreen(
-          bodyTextColor: Color(0xFF0000FF),
           title: "wallet",
           getWallet: () {
             return mockWallet;
@@ -96,24 +97,25 @@ void main() {
       expect(find.text("Active wallet"), findsOneWidget);
       expect(find.text("Choose a wallet"), findsNothing);
 
-      expect(find.text('Status:'), findsOneWidget);
-      expect(find.text('Linked with XRPL '), findsOneWidget);
       expect(find.text('Classic address:'), findsOneWidget);
-      expect(find.text("a-random-address"), findsOneWidget);
-      expect(find.text('Dhali balance:'), findsOneWidget);
+      expect(find.text("Show"), findsOneWidget);
+      expect(find.text("Total deposited:"), findsOneWidget);
+      expect(find.text("Total spent:"), findsOneWidget);
       expect(find.text('1 XRP '), findsOneWidget);
+      expect(find.text('0 XRP '), findsOneWidget);
+
+      await tester.tap(find.text("Show"));
+      await tester.pumpAndSettle();
+      expect(find.text("Classic address"), findsOneWidget);
+      expect(find.text("a-random-address"), findsOneWidget);
+      await tester.tap(find.text("OK"));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key("fynbos_wallet_tile")));
+      await tester.tap(find.byKey(const Key("gem_wallet_tile")));
       await tester.pumpAndSettle();
-      expect(find.text('Fynbos wallet coming soon!'), findsOneWidget);
-      await tester.tap(find.text("Available wallets"));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key("metamask_wallet_tile")));
-      await tester.pumpAndSettle();
-      expect(find.text('MetaMask wallet coming soon!'), findsOneWidget);
+      expect(find.text('GemWallet coming soon'), findsOneWidget);
       await tester.tap(find.text("Available wallets"));
       await tester.pumpAndSettle();
     });
@@ -127,6 +129,8 @@ void main() {
     const w = 1480;
     const h = 1080;
     DhaliWallet? mockWallet = MockXummWallet();
+    when((mockWallet as MockXummWallet).amount)
+        .thenReturn(ValueNotifier("1000000"));
     when((mockWallet as MockXummWallet).balance)
         .thenReturn(ValueNotifier("2000000"));
     when(mockWallet.address).thenReturn("a-random-address");
@@ -143,7 +147,6 @@ void main() {
         platform: TargetPlatform.iOS,
       ),
       home: WalletHomeScreen(
-        bodyTextColor: Color(0xFF0000FF),
         title: "wallet",
         getWallet: () {
           return mockWallet;
@@ -160,24 +163,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key("xumm_wallet_tile")));
     await tester.pumpAndSettle();
-    expect(find.text('Status:'), findsOneWidget);
-    expect(find.text('Linked with XUMM '), findsOneWidget);
+
     expect(find.text('Classic address:'), findsOneWidget);
-    expect(find.text("a-random-address"), findsOneWidget);
-    expect(find.text('Dhali balance:'), findsOneWidget);
+    expect(find.text("Show"), findsOneWidget);
+    expect(find.text("Total deposited:"), findsOneWidget);
+    expect(find.text("Total spent:"), findsOneWidget);
     expect(find.text('2 XRP '), findsOneWidget);
+    expect(find.text('1 XRP '), findsOneWidget);
 
     await tester.tap(find.text("Available wallets"));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key("fynbos_wallet_tile")));
+    await tester.tap(find.byKey(const Key("gem_wallet_tile")));
     await tester.pumpAndSettle();
-    expect(find.text('Fynbos wallet coming soon!'), findsOneWidget);
-    await tester.tap(find.text("Available wallets"));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key("metamask_wallet_tile")));
-    await tester.pumpAndSettle();
-    expect(find.text('MetaMask wallet coming soon!'), findsOneWidget);
+    expect(find.text('GemWallet coming soon'), findsOneWidget);
     await tester.tap(find.text("Available wallets"));
     await tester.pumpAndSettle();
   });
