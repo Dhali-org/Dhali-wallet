@@ -130,10 +130,9 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 ),
               ),
               TableCell(
-                child: Container(
-                  margin: EdgeInsets.all(8),
-                  child:
-                      getTextButton("Show", textSize: fontSize, onPressed: () {
+                  child: Row(
+                children: [
+                  getTextButton("Show", textSize: fontSize, onPressed: () {
                     showDialog(
                         context: context,
                         builder: (context) {
@@ -156,8 +155,16 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                           );
                         });
                   }),
-                ),
-              ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  getTextButton("Log out", textSize: fontSize, onPressed: () {
+                    setState(() {
+                      widget.setWallet(null);
+                    });
+                  })
+                ],
+              )),
             ],
           ),
           TableRow(
