@@ -47,12 +47,7 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   PaymentChannelDescriptor? _descriptor;
   @override
   Widget build(BuildContext context) {
-    if (widget.walletType == Wallet.RawXRPWallet) {
-      return widget.getWallet() is XRPLWallet ||
-              widget.getWallet() is XummWallet
-          ? viewAccount()
-          : signinXumm();
-    } else if (widget.walletType == Wallet.XummWallet) {
+    if (widget.walletType == Wallet.XummWallet) {
       return widget.getWallet() is XummWallet ? viewAccount() : signinXumm();
     } else if (widget.walletType == Wallet.GemWallet) {
       return const Center(
