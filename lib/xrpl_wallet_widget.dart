@@ -47,7 +47,12 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
   PaymentChannelDescriptor? _descriptor;
   @override
   Widget build(BuildContext context) {
-    if (widget.walletType == Wallet.XummWallet) {
+    if (widget.walletType == Wallet.RawXRPWallet) {
+      return widget.getWallet() is XRPLWallet ||
+              widget.getWallet() is XummWallet
+          ? viewAccount()
+          : signinXumm();
+    } else if (widget.walletType == Wallet.XummWallet) {
       return widget.getWallet() is XummWallet ? viewAccount() : signinXumm();
     } else if (widget.walletType == Wallet.GemWallet) {
       return const Center(
@@ -125,10 +130,9 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                 ),
               ),
               TableCell(
-                child: Container(
-                  margin: EdgeInsets.all(8),
-                  child:
-                      getTextButton("Show", textSize: fontSize, onPressed: () {
+                  child: Row(
+                children: [
+                  getTextButton("Show", textSize: fontSize, onPressed: () {
                     showDialog(
                         context: context,
                         builder: (context) {
@@ -151,8 +155,16 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
                           );
                         });
                   }),
-                ),
-              ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  getTextButton("Log out", textSize: fontSize, onPressed: () {
+                    setState(() {
+                      widget.setWallet(null);
+                    });
+                  })
+                ],
+              )),
             ],
           ),
           TableRow(

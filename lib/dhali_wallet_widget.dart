@@ -13,7 +13,7 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum Wallet { XummWallet, GemWallet, UnselectedWallet }
+enum Wallet { RawXRPWallet, XummWallet, GemWallet, UnselectedWallet }
 
 class WalletHomeScreen extends StatefulWidget {
   const WalletHomeScreen(
@@ -73,7 +73,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
   @override
   void initState() {
     _wallet = Wallet.UnselectedWallet;
-    if (widget.getWallet() is XummWallet) {
+    if (widget.getWallet() is XRPLWallet) {
+      _tabIndex = 1;
+      _wallet = Wallet.RawXRPWallet;
+    } else if (widget.getWallet() is XummWallet) {
       _tabIndex = 1;
       _wallet = Wallet.XummWallet;
     }
@@ -123,11 +126,157 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
         ));
   }
 
+  Widget CreateRawXRPLWallet() {
+    return Center(
+      child: ListView(
+        shrinkWrap: true,
+        children: <Widget>[
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 60.0),
+              child: Form(
+                key: _mnemonicFormKey,
+                child: Column(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 0, vertical: 25),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _mnemonicState = bip39.generateMnemonic();
+                              var wallet = XRPLWallet(_mnemonicState!,
+                                  getFirestore: () =>
+                                      FirebaseFirestore.instance,
+                                  testMode: true);
+                              setWalletAndRestore(wallet);
+                              _publicKey = wallet.publicKey();
+                              final dataUri =
+                                  'data:text/plain;charset=utf-8,${(widget.getWallet() as XRPLWallet).mnemonic!}';
+                              html.document.createElement('a')
+                                  as html.AnchorElement
+                                ..href = dataUri
+                                ..download = 'dhali_xrp_wallet_secret_words.txt'
+                                ..dispatchEvent(html.Event.eventType(
+                                    'MouseEvent', 'click'));
+                              if (widget.onActivation != null) {
+                                widget.onActivation!();
+                              }
+                            });
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 50.0, vertical: 25),
+                            child: Text(
+                              'Generate new test wallet',
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Text("or", style: TextStyle(fontSize: 25)),
+                    TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        decoration: const InputDecoration(
+                          hintText: "Input your memorable words here.",
+                        ),
+                        validator: (value) {
+                          const String errorMessage =
+                              'You must have at least 12 memorable words for your wallet.';
+                          if (value == null || value.isEmpty) {
+                            return errorMessage;
+                          }
+
+                          final whitespaceRegex = RegExp(r"\s+");
+                          final leadingWhitespaceRegex = RegExp(r"^\s");
+                          final trailingWhitespaceRegex = RegExp(r"\s$");
+
+                          String cleanupWhitespace(String input) => value
+                              .replaceAll(whitespaceRegex, " ")
+                              .replaceAll(leadingWhitespaceRegex, "")
+                              .replaceAll(trailingWhitespaceRegex, "");
+
+                          if (cleanupWhitespace(value).split(' ').length < 12) {
+                            return errorMessage;
+                          }
+                          return null;
+                        },
+                        onChanged: (String mnemonic) {
+                          if (_mnemonicFormKey.currentState!.validate()) {
+                            setState(() {
+                              _mnemonicState = mnemonic;
+                            });
+                          } else {
+                            setState(() {
+                              _mnemonicState = null;
+                            });
+                          }
+                        }),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 0, vertical: 25),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_mnemonicState != null) {
+                              // TODO: 'testMode' to 'false' for release
+                              var wallet = XRPLWallet(_mnemonicState!,
+                                  getFirestore: () =>
+                                      FirebaseFirestore.instance,
+                                  testMode: true);
+                              setWalletAndRestore(wallet);
+                              _publicKey = wallet.publicKey();
+                              if (widget.onActivation != null) {
+                                widget.onActivation!();
+                              }
+                            }
+                            setState(() {});
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 50.0, vertical: 25),
+                            child: Text(
+                              'Retrieve test wallet',
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget getScreenView(drawerIndex) {
     Future(() => ScaffoldMessenger.of(context).hideCurrentSnackBar());
     Widget screen = UnselectedWallet();
 
     switch (drawerIndex) {
+      case Wallet.RawXRPWallet:
+        if (widget.getWallet() is! XRPLWallet) {
+          screen = CreateRawXRPLWallet();
+        } else {
+          screen = XRPLWalletWidget(
+            walletType: Wallet.RawXRPWallet,
+            getWallet: widget.getWallet,
+            setWallet: setWalletAndRestore,
+            onActivation: widget.onActivation,
+            isDesktop: MediaQuery.of(context).size.width > 720,
+          );
+        }
+        break;
       case Wallet.XummWallet:
         screen = XRPLWalletWidget(
           walletType: Wallet.XummWallet,
@@ -201,6 +350,26 @@ class _WalletHomeScreenState extends State<WalletHomeScreen>
                     height: icon_height);
                 text = " Link XUMM wallet";
                 spacer = SizedBox(height: spacer_height);
+              } else if (wallet == Wallet.RawXRPWallet &&
+                  const String.fromEnvironment('INTEGRATION') != "true") {
+                key = Key("raw_xrp_wallet_tile");
+                image = Image.asset(
+                  widget.isImported
+                      ? 'packages/dhali_wallet/assets/images/xrp.png'
+                      : 'assets/images/xrp.png',
+                  height: icon_height,
+                );
+                text = " Use free test wallet";
+                spacer = Column(children: [
+                  SizedBox(height: spacer_height),
+                  const Text(
+                    "or",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: spacer_height)
+                ]);
               } else {
                 key = Key("gem_wallet_tile");
                 image = Image.asset(
