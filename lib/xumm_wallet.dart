@@ -23,33 +23,44 @@ class SignatureClaimPair {
   SignatureClaimPair(this.signature, this.amount);
 }
 
-Future<void> _showModalFromURL(
-    String title, BuildContext? context, Map<String, dynamic> data) async {
+Future<void> _showModalFromURL(String title, BuildContext? context,
+    Map<String, dynamic> data, bool? isDesktop) async {
   final pngUrl = data["refs"]["qr_png"];
   final response = await http.get(Uri.parse(pngUrl));
+  double fontSize = isDesktop == true ? 20.0 : 12.0;
+  double padding = isDesktop == true ? 20.0 : 5.0;
+  double verticalInsetPadding = isDesktop == true ? 24.0 : 5.0; // 24 is default
+  double horizontalInsetPadding =
+      isDesktop == true ? 40.0 : 5.0; // 40 is default
 
   if (context != null && response.statusCode == 200) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+              vertical: verticalInsetPadding,
+              horizontal: horizontalInsetPadding),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
                 Radius.circular(20.0)), // Set your desired border radius here
           ),
           title: Text(
             title,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w900),
           ),
-          contentPadding: EdgeInsets.all(20),
+          contentPadding: EdgeInsets.all(padding),
           actionsAlignment: MainAxisAlignment.center,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Open XUMM wallet on your mobile \nphone and scan this QR code or"
-                " \nclick \"Open XUMM\".",
-                style: TextStyle(fontSize: 16),
+                "Open XUMM wallet on your mobile phone and scan this QR code or"
+                " click \"Open XUMM\".",
+                softWrap: true,
+                style: TextStyle(
+                  fontSize: fontSize,
+                ),
               ),
               Image.memory(
                 response.bodyBytes,
@@ -60,9 +71,10 @@ Future<void> _showModalFromURL(
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(
-                  bottom: 30.0), // Adjust this value to your preference
-              child: getTextButton('Open XUMM', onPressed: () {
+              padding: EdgeInsets.all(
+                  padding), // Adjust this value to your preference
+              child:
+                  getTextButton('Open XUMM', textSize: fontSize, onPressed: () {
                 final Uri _url = Uri.parse(data["next"]["always"]);
                 launchUrl(_url, mode: LaunchMode.externalApplication);
               }),
@@ -77,11 +89,9 @@ Future<void> _showModalFromURL(
 }
 
 void displayQRCodeFrom(
-  String title,
-  BuildContext? context,
-  Map<String, dynamic> data,
-) {
-  _showModalFromURL(title, context, data);
+    String title, BuildContext? context, Map<String, dynamic> data,
+    {bool? isDesktop}) {
+  _showModalFromURL(title, context, data, isDesktop);
 }
 
 class XummWallet extends DhaliWallet {
@@ -104,10 +114,12 @@ class XummWallet extends DhaliWallet {
 
   ValueNotifier<String?> _balance = ValueNotifier(null);
   ValueNotifier<String?> _amount = ValueNotifier(null);
+  final bool _isDesktop;
 
   XummWallet(String address,
-      {required this.getFirestore, bool testMode = false})
-      : _address = address {
+      {required this.getFirestore, bool testMode = false, bool? isDesktop})
+      : _address = address,
+        _isDesktop = isDesktop ?? true {
     _netUrl = testMode ? testNetUrl : mainnetUrl;
     Client client = Client(_netUrl);
     var logger = Logger();
@@ -189,7 +201,8 @@ class XummWallet extends DhaliWallet {
         return false;
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to fund your balance", context, data);
+      displayQRCodeFrom("Scan to fund your balance", context, data,
+          isDesktop: _isDesktop);
       bool result =
           await poll(data["uuid"], onSuccess: (http.Response response) {
         if (context != null) {
@@ -229,7 +242,8 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to make payment", context, data);
+      displayQRCodeFrom("Scan to make payment", context, data,
+          isDesktop: _isDesktop);
       return await poll(data["uuid"], onSuccess: (http.Response response) {
         if (context != null) {
           Navigator.pop(context);
@@ -305,7 +319,8 @@ class XummWallet extends DhaliWallet {
       "Account": address
     }, null);
     var data = jsonDecode(response.body) as Map<String, dynamic>;
-    displayQRCodeFrom("Scan to accept NFT", context, data);
+    displayQRCodeFrom("Scan to accept NFT", context, data,
+        isDesktop: _isDesktop);
     await poll(data["uuid"],
         onSuccess: (http.Response response) => {
               if (context != null) {Navigator.pop(context)}
@@ -385,7 +400,8 @@ class XummWallet extends DhaliWallet {
         throw HttpException("XUMM api rejected request");
       }
       var data = jsonDecode(response.body) as Map<String, dynamic>;
-      displayQRCodeFrom("Scan to open a payment channel", context, data);
+      displayQRCodeFrom("Scan to open a payment channel", context, data,
+          isDesktop: _isDesktop);
       await poll(data["uuid"],
           onSuccess: (http.Response response) => {
                 if (context != null) {Navigator.pop(context)}
