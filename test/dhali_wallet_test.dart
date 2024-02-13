@@ -100,16 +100,15 @@ void main() {
       expect(find.text("Active wallet"), findsOneWidget);
       expect(find.text("Choose a wallet"), findsNothing);
 
-      expect(find.text('Classic address:'), findsOneWidget);
-      expect(find.text("Show"), findsOneWidget);
+      expect(find.text("Show address"), findsOneWidget);
+      expect(find.text("Log out"), findsOneWidget);
       expect(find.text("Total deposited:"), findsOneWidget);
       expect(find.text("Total spent:"), findsOneWidget);
       expect(find.text('1 XRP '), findsOneWidget);
       expect(find.text('0 XRP '), findsOneWidget);
 
-      await tester.tap(find.text("Show"));
+      await tester.tap(find.text("Show address"));
       await tester.pumpAndSettle();
-      expect(find.text("Classic address"), findsOneWidget);
       expect(find.text("a-random-address"), findsOneWidget);
       await tester.tap(find.text("OK"));
       await tester.pumpAndSettle();
@@ -167,8 +166,8 @@ void main() {
     await tester.tap(find.byKey(const Key("xumm_wallet_tile")));
     await tester.pumpAndSettle();
 
-    expect(find.text('Classic address:'), findsOneWidget);
-    expect(find.text("Show"), findsOneWidget);
+    expect(find.text('Log out'), findsOneWidget);
+    expect(find.text("Show address"), findsOneWidget);
     expect(find.text("Total deposited:"), findsOneWidget);
     expect(find.text("Total spent:"), findsOneWidget);
     expect(find.text('2 XRP '), findsOneWidget);
