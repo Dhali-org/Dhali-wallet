@@ -123,48 +123,44 @@ class _XRPLWalletWidgetState extends State<XRPLWalletWidget> {
             children: [
               TableCell(
                 child: Container(
-                  margin: EdgeInsets.all(8),
-                  child: Text('Classic address:',
-                      style: TextStyle(
-                          fontSize: fontSize, fontWeight: FontWeight.bold)),
-                ),
+                    margin: EdgeInsets.all(8),
+                    child: getTextButton("Show address", textSize: fontSize,
+                        onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              insetPadding: EdgeInsets.symmetric(
+                                  vertical: verticalInsetPadding,
+                                  horizontal: horizontalInsetPadding),
+                              title: Text('Classic address',
+                                  style: TextStyle(fontSize: fontSize)),
+                              content: SelectableText(
+                                  widget.getWallet()!.address,
+                                  style: TextStyle(fontSize: fontSize)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text("OK"),
+                                ),
+                              ],
+                            );
+                          });
+                    })),
               ),
               TableCell(
-                  child: Row(
-                children: [
-                  getTextButton("Show", textSize: fontSize, onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            insetPadding: EdgeInsets.symmetric(
-                                vertical: verticalInsetPadding,
-                                horizontal: horizontalInsetPadding),
-                            title: Text('Classic address',
-                                style: TextStyle(fontSize: fontSize)),
-                            content: SelectableText(widget.getWallet()!.address,
-                                style: TextStyle(fontSize: fontSize)),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("OK"),
-                              ),
-                            ],
-                          );
-                        });
-                  }),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  getTextButton("Log out", textSize: fontSize, onPressed: () {
+                child: Container(
+                  margin: EdgeInsets.all(8),
+                  child: getTextButton("Log out", textSize: fontSize,
+                      onPressed: () {
                     setState(() {
                       widget.setWallet(null);
                     });
-                  })
-                ],
-              )),
+                  }),
+                ),
+              )
             ],
           ),
           TableRow(
